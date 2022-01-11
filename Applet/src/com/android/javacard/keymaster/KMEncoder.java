@@ -309,19 +309,19 @@ public class KMEncoder {
   }
 
   private void encodeKeyChar(short obj) {
-    encode(KMKeyCharacteristics.cast(obj).getVals());
+    encode(KMKeyCharacteristics.getVals(obj));
   }
 
   private void encodeVeriToken(short obj) {
-    encode(KMVerificationToken.cast(obj).getVals());
+    encode(KMVerificationToken.getVals(obj));
   }
 
   private void encodeHwAuthToken(short obj) {
-    encode(KMHardwareAuthToken.cast(obj).getVals());
+    encode(KMHardwareAuthToken.getVals(obj));
   }
 
   private void encodeHmacSharingParam(short obj) {
-    encode(KMHmacSharingParameters.cast(obj).getVals());
+    encode(KMHmacSharingParameters.getVals(obj));
   }
 
   private void encodeArray(short obj) {
@@ -398,7 +398,7 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeEnum(short obj) {
-    writeByteValue(KMEnum.cast(obj).getVal());
+    writeByteValue(KMEnum.getVal(obj));
   }
 
   private void encodeInteger(byte[] val, short len, short startOff, short majorType) {

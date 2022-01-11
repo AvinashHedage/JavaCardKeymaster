@@ -164,4 +164,22 @@ public class KMEnum extends KMType {
     // return false if key does not exist
     return false;
   }
+  
+  public static void setVal(short bPtr, byte val) {
+    KMEnum.cast(bPtr).setVal(val);
+  }
+
+  public static byte getVal(short bPtr) {
+	return KMEnum.cast(bPtr).getVal();
+  }
+
+  public static void setEnumType(short bPtr, short type) {
+	KMEnum.cast(bPtr).setEnumType(type);
+  }
+
+  public static short getEnumType(short bPtr) {
+	return KMEnum.cast(bPtr).getEnumType();
+  }
+
+  
 }

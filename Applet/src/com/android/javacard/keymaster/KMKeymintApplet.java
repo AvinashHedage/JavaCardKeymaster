@@ -1,12 +1,18 @@
 package com.android.javacard.keymaster;
 
+import com.android.javacard.seprovider.KMAndroidSEProvider;
 import com.android.javacard.seprovider.KMAttestationCert;
 import com.android.javacard.seprovider.KMException;
 import com.android.javacard.seprovider.KMSEProvider;
+
 import javacard.framework.Util;
 
-public class KMKeymintSpecification implements KMSpecification {
+public class KMKeymintApplet extends KMKeymasterApplet {
 
+  KMKeymintApplet(KMSEProvider seImpl) {
+    super(seImpl);
+  }
+  
   public static final byte[] JAVACARD_KEYMINT_DEVICE = {
       0x4a, 0x61, 0x76, 0x61, 0x63, 0x61, 0x72, 0x64,
       0x4b, 0x65, 0x79, 0x6d, 0x69, 0x6e, 0x74,
@@ -53,9 +59,9 @@ public class KMKeymintSpecification implements KMSpecification {
     short swParams = KMKeyParameters.makeKeystoreEnforced(keyParams, scratchPad);
     //short emptyParam = KMArray.instance((short) 0);
     short keyCharacteristics = KMKeyCharacteristics.instance();
-    KMKeyCharacteristics.cast(keyCharacteristics).setStrongboxEnforced(strongboxParams);
-    KMKeyCharacteristics.cast(keyCharacteristics).setKeystoreEnforced(swParams);
-    KMKeyCharacteristics.cast(keyCharacteristics).setTeeEnforced(teeParams);
+    KMKeyCharacteristics.setStrongboxEnforced(keyCharacteristics, strongboxParams);
+    KMKeyCharacteristics.setKeystoreEnforced(keyCharacteristics, swParams);
+    KMKeyCharacteristics.setTeeEnforced(keyCharacteristics, teeParams);
     return keyCharacteristics;
   }
 
@@ -64,9 +70,9 @@ public class KMKeymintSpecification implements KMSpecification {
     short keyChars = KMKeyCharacteristics.instance();
     short emptyParam = KMArray.instance((short) 0);
     emptyParam = KMKeyParameters.instance(emptyParam);
-    KMKeyCharacteristics.cast(keyChars).setStrongboxEnforced(sbParams);
-    KMKeyCharacteristics.cast(keyChars).setKeystoreEnforced(emptyParam);
-    KMKeyCharacteristics.cast(keyChars).setTeeEnforced(teeParams);
+    KMKeyCharacteristics.setStrongboxEnforced(keyChars, sbParams);
+    KMKeyCharacteristics.setKeystoreEnforced(keyChars, emptyParam);
+    KMKeyCharacteristics.setTeeEnforced(keyChars, teeParams);
     return keyChars;
   }
 
@@ -199,6 +205,6 @@ public class KMKeymintSpecification implements KMSpecification {
 
   @Override
   public short getMacFromVerificationToken(short verToken) {
-    return KMVerificationToken.cast(verToken).getMac((short) 0x02);
+    return KMVerificationToken.getMac(verToken, (short) 0x02);
   }
 }

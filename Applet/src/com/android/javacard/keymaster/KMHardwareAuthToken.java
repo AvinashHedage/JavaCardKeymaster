@@ -165,4 +165,60 @@ public class KMHardwareAuthToken extends KMType {
     short arrPtr = getVals();
     KMArray.add(arrPtr, MAC, vals);
   }
+  
+  public static short getVals(short bPtr) {
+    return KMHardwareAuthToken.cast(bPtr).getVals();
+  }
+
+  public static short length(short bPtr) {
+    return KMHardwareAuthToken.cast(bPtr).length();
+  }
+
+  public static short getChallenge(short bPtr) {
+    return KMHardwareAuthToken.cast(bPtr).getChallenge();
+  }
+
+  public static void setChallenge(short bPtr, short vals) {
+	KMHardwareAuthToken.cast(bPtr).setChallenge(vals);
+  }
+
+  public static short getUserId(short bPtr) {
+    return KMHardwareAuthToken.cast(bPtr).getUserId();
+  }
+
+  public static void setUserId(short bPtr, short vals) {
+	KMHardwareAuthToken.cast(bPtr).setUserId(vals);
+  }
+
+  public static short getAuthenticatorId(short bPtr) {
+	return KMHardwareAuthToken.cast(bPtr).getAuthenticatorId();
+  }
+
+  public static void setAuthenticatorId(short bPtr, short vals) {
+	KMHardwareAuthToken.cast(bPtr).setAuthenticatorId(vals);
+  }
+
+  public static short getHwAuthenticatorType(short bPtr) {
+	  return KMHardwareAuthToken.cast(bPtr).getHwAuthenticatorType();
+  }
+
+  public static void setHwAuthenticatorType(short bPtr, short vals) {
+    KMHardwareAuthToken.cast(bPtr).setHwAuthenticatorType(vals);
+  }
+
+  public static short getTimestamp(short bPtr) {
+	return KMHardwareAuthToken.cast(bPtr).getTimestamp();
+  }
+
+  public static void setTimestamp(short bPtr, short vals) {
+	KMHardwareAuthToken.cast(bPtr).setTimestamp(vals);
+  }
+
+  public static short getMac(short bPtr) {
+    return KMHardwareAuthToken.cast(bPtr).getMac();
+  }
+
+  public static void setMac(short bPtr, short vals) {
+	KMHardwareAuthToken.cast(bPtr).setMac(vals);
+  }  
 }

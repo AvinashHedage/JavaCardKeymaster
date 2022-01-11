@@ -158,17 +158,17 @@ public class KMDecoder {
   }
 
   private short decodeVerificationToken(short exp) {
-    short vals = decode(KMVerificationToken.cast(exp).getVals());
+    short vals = decode(KMVerificationToken.getVals(exp));
     return KMVerificationToken.instance(vals);
   }
 
   private short decodeHwAuthToken(short exp) {
-    short vals = decode(KMHardwareAuthToken.cast(exp).getVals());
+    short vals = decode(KMHardwareAuthToken.getVals(exp));
     return KMHardwareAuthToken.instance(vals);
   }
 
   private short decodeHmacSharingParam(short exp) {
-    short vals = decode(KMHmacSharingParameters.cast(exp).getVals());
+    short vals = decode(KMHmacSharingParameters.getVals(exp));
     return KMHmacSharingParameters.instance(vals);
   }
 
@@ -335,7 +335,7 @@ public class KMDecoder {
     // allowed tags
     short allowedTags = KMKeyParameters.cast(exp).getVals();
     short tagRule = KMArray.get(allowedTags, (short)0);
-    boolean ignoreInvalidTags = KMEnum.cast(tagRule).getVal() == KMType.IGNORE_INVALID_TAGS;
+    boolean ignoreInvalidTags = KMEnum.getVal(tagRule) == KMType.IGNORE_INVALID_TAGS;
     short vals = KMArray.instance(payloadLength);
     short length = KMArray.length(allowedTags);
     short index = 0;
@@ -524,7 +524,7 @@ public class KMDecoder {
       enumVal = buffer[startOff];
       incrementStartOff((short) 1);
     }
-    return KMEnum.instance(KMEnum.cast(exp).getEnumType(), enumVal);
+    return KMEnum.instance(KMEnum.getEnumType(exp), enumVal);
   }
 
   private short decodeSimpleValue(short exp) {

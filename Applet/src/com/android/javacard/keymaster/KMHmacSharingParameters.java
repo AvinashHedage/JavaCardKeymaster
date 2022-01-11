@@ -106,4 +106,28 @@ public class KMHmacSharingParameters extends KMType {
     short arrPtr = getVals();
     return KMArray.get(arrPtr, SEED);
   }
+  
+  public static short getVals(short bPtr) {
+	return KMHmacSharingParameters.cast(bPtr).getVals();
+  }
+
+  public static short length(short bPtr) {
+    return KMHmacSharingParameters.cast(bPtr).length();
+  }
+
+  public static void setSeed(short bPtr, short vals) {
+	KMHmacSharingParameters.cast(bPtr).setSeed(vals);
+  }
+
+  public static void setNonce(short bPtr, short vals) {
+	KMHmacSharingParameters.cast(bPtr).setNonce(vals);
+  }
+
+  public static short getNonce(short bPtr) {
+    return KMHmacSharingParameters.cast(bPtr).getNonce();
+  }
+
+  public static short getSeed(short bPtr) {
+	return KMHmacSharingParameters.cast(bPtr).getSeed();
+  }
 }

@@ -140,4 +140,34 @@ public class KMVerificationToken extends KMType {
     short arrPtr = getVals();
     return KMArray.get(arrPtr, macIndex);
   }
+  
+  
+  public static short getVals(short bPtr) {
+	return KMVerificationToken.cast(bPtr).getVals();
+  }
+
+  public static short length(short bPtr) {
+	return KMVerificationToken.cast(bPtr).length();
+  }
+
+  public static short getChallenge(short bPtr) {
+	return KMVerificationToken.cast(bPtr).getChallenge();
+  }
+
+  public static void setChallenge(short bPtr, short vals) {
+	KMVerificationToken.cast(bPtr).setChallenge(vals);
+  }
+
+  public static short getTimestamp(short bPtr) {
+	return KMVerificationToken.cast(bPtr).getTimestamp();
+  }
+
+  public static void setTimestamp(short bPtr, short vals) {
+	KMVerificationToken.cast(bPtr).setTimestamp(vals);
+  }
+
+  public static short getMac(short bPtr, short macIndex) {
+	return KMVerificationToken.cast(bPtr).getMac(macIndex);
+  }
+  
 }

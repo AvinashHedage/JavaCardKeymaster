@@ -141,4 +141,37 @@ public class KMKeyCharacteristics extends KMType {
     short arrPtr = getVals();
     KMArray.add(arrPtr, STRONGBOX_ENFORCED, ptr);
   }
+  
+  public static short getVals(short bPtr) {
+    return KMKeyCharacteristics.cast(bPtr).getVals();
+  }
+
+  public static short length(short bPtr) {
+	return KMKeyCharacteristics.cast(bPtr).length();
+  }
+
+  public static short getKeystoreEnforced(short bPtr) {
+	return KMKeyCharacteristics.cast(bPtr).getKeystoreEnforced();
+  }
+
+  public static short getTeeEnforced(short bPtr) {
+	return KMKeyCharacteristics.cast(bPtr).getTeeEnforced();
+  }
+
+  public static short getStrongboxEnforced(short bPtr) {
+	return KMKeyCharacteristics.cast(bPtr).getStrongboxEnforced();
+  }
+
+  public static void setKeystoreEnforced(short bPtr, short ptr) {
+	KMKeyCharacteristics.cast(bPtr).setKeystoreEnforced(ptr);
+  }
+
+  public static void setTeeEnforced(short bPtr, short ptr) {
+	KMKeyCharacteristics.cast(bPtr).setTeeEnforced(ptr);
+  }
+
+  public static void setStrongboxEnforced(short bPtr, short ptr) {
+	KMKeyCharacteristics.cast(bPtr).setStrongboxEnforced(ptr);
+  }
+  
 }
