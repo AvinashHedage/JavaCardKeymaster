@@ -82,7 +82,7 @@ public class KMArray extends KMType {
     return proto(ptr);
   }
 
-  public void add(short index, short objPtr) {
+  private void add(short index, short objPtr) {
     short len = length();
     if (index >= len) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
@@ -93,7 +93,7 @@ public class KMArray extends KMType {
         objPtr);
   }
 
-  public short get(short index) {
+  private short get(short index) {
     short len = length();
     if (index >= len) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
@@ -102,7 +102,7 @@ public class KMArray extends KMType {
         heap, (short) (getStartOff() + (short) (index * 2)));
 }
 
-  public void swap(short index1, short index2) {
+  private void swap(short index1, short index2) {
     short len = length();
     if (index1 >= len || index2 >= len) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
@@ -125,25 +125,58 @@ public class KMArray extends KMType {
         indexPtr1);
   }
 
-  public short containedType() {
+  private short containedType() {
     return Util.getShort(heap, (short) (KMType.instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE));
   }
 
-  public short getStartOff() {
+  private short getStartOff() {
     return (short) (KMType.instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + ARRAY_HEADER_SIZE);
   }
 
-  public short length() {
+  private short length() {
     return Util.getShort(heap, (short) (KMType.instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + 2));
   }
 
-  public byte[] getBuffer() {
+  private byte[] getBuffer() {
     return heap;
   }
 
-  public void deleteLastEntry() {
+  private void deleteLastEntry() {
     short len = length();
     Util.setShort(heap, (short) (instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + 2),
         (short) (len - 1));
   }
+  
+  public static void add(short bPtr, short index, short objPtr) {
+	KMArray.cast(bPtr).add(index, objPtr);
+  }
+
+  public static short get(short bPtr, short index) {
+	return KMArray.cast(bPtr).get(index);
+  }
+
+  public static void swap(short bPtr, short index1, short index2) {
+	KMArray.cast(bPtr).swap(index1, index2);
+  }
+
+  public static short containedType(short bPtr) {
+	return KMArray.cast(bPtr).containedType();
+  }
+
+  public static short getStartOff(short bPtr) {
+	return KMArray.cast(bPtr).getStartOff();
+  }
+
+  public static short length(short bPtr) {
+	return KMArray.cast(bPtr).length();
+  }
+
+  public static byte[] getBuffer(short bPtr) {
+	return KMArray.cast(bPtr).getBuffer();
+  }
+
+  public static void deleteLastEntry(short bPtr) {
+	KMArray.cast(bPtr).deleteLastEntry();
+  }
+  
 }

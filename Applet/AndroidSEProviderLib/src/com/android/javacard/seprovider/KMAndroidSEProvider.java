@@ -1550,20 +1550,6 @@ public class KMAndroidSEProvider implements KMSEProvider {
   public KMComputedHmacKey getComputedHmacKey() {
     return computedHmacKey;
   }
-  
-  private byte mapPurpose(short purpose) {
-    switch (purpose) {
-      case KMType.ENCRYPT:
-        return Cipher.MODE_ENCRYPT;
-      case KMType.DECRYPT:
-        return Cipher.MODE_DECRYPT;
-      case KMType.SIGN:
-        return Signature.MODE_SIGN;
-      case KMType.VERIFY:
-        return Signature.MODE_VERIFY;
-    }
-    return -1;
-  }
 
   private short getProvisionDataBufferOffset(byte dataType) {
     switch(dataType) {

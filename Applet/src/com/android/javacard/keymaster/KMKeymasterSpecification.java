@@ -28,13 +28,12 @@ public class KMKeymasterSpecification implements KMSpecification {
   @Override
   public short getHardwareInfo() {
     short respPtr = KMArray.instance((short) 3);
-    KMArray resp = KMArray.cast(respPtr);
-    resp.add((short) 0, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
-    resp.add(
+    KMArray.add(respPtr, (short) 0, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
+    KMArray.add(respPtr, 
         (short) 1,
         KMByteBlob.instance(
             JAVACARD_KEYMASTER_DEVICE, (short) 0, (short) JAVACARD_KEYMASTER_DEVICE.length));
-    resp.add((short) 2, KMByteBlob.instance(GOOGLE, (short) 0, (short) GOOGLE.length));
+    KMArray.add(respPtr, (short) 2, KMByteBlob.instance(GOOGLE, (short) 0, (short) GOOGLE.length));
     return respPtr;
   }
 
@@ -83,11 +82,11 @@ public class KMKeymasterSpecification implements KMSpecification {
       arrayLen = 4;
     }
     short params = KMArray.instance((short) arrayLen);
-    KMArray.cast(params).add((short) 0, KMKeyParameters.cast(hwParams).getVals());
-    KMArray.cast(params).add((short) 1, KMKeyParameters.cast(swParams).getVals());
-    KMArray.cast(params).add((short) 2, KMKeyParameters.cast(hiddenParams).getVals());
+    KMArray.add(params, (short) 0, KMKeyParameters.cast(hwParams).getVals());
+    KMArray.add(params, (short) 1, KMKeyParameters.cast(swParams).getVals());
+    KMArray.add(params, (short) 2, KMKeyParameters.cast(hiddenParams).getVals());
     if (4 == arrayLen) {
-      KMArray.cast(params).add((short) 3, pubKey);
+      KMArray.add(params, (short) 3, pubKey);
     }
     return params;
   }
@@ -128,7 +127,7 @@ public class KMKeymasterSpecification implements KMSpecification {
     cert.subjectName(KMByteBlob.instance(X509Subject, (short) 0, (short) X509Subject.length));
     // Serial
     short serialNumber = KMByteBlob.instance((short) 1);
-    KMByteBlob.cast(serialNumber).add((short) 0, SERIAL_NUM);
+    KMByteBlob.add(serialNumber, (short) 0, SERIAL_NUM);
     cert.serialNumber(serialNumber);
     // Issuer.
     cert.issuer(getProvisionedCertificateData(seProvider, KMSEProvider.CERTIFICATE_ISSUER));
@@ -148,8 +147,8 @@ public class KMKeymasterSpecification implements KMSpecification {
     short ptr = KMByteBlob.instance(len);
     seProvider.readProvisionedData(
         dataType,
-        KMByteBlob.cast(ptr).getBuffer(),
-        KMByteBlob.cast(ptr).getStartOff());
+        KMByteBlob.getBuffer(ptr),
+        KMByteBlob.getStartOff(ptr));
     return ptr;
   }
 

@@ -70,10 +70,9 @@ public class KMUtils {
     byte Z = 0x5A;
     boolean from2020 = true;
     Util.arrayFillNonAtomic(scratchPad, (short) 0, (short) 256, (byte) 0);
-    Util.arrayCopyNonAtomic(KMInteger.cast(time).getBuffer(),
-        KMInteger.cast(time).getStartOff(), scratchPad,
-        (short) (8 - KMInteger.cast(time).length()), KMInteger.cast(time)
-            .length());
+    Util.arrayCopyNonAtomic(KMInteger.getBuffer(time),
+        KMInteger.getStartOff(time), scratchPad,
+        (short) (8 - KMInteger.length(time)), KMInteger.length(time));
     // If the time is less then 1 Jan 2020 then it is an error
     if (KMInteger.unsignedByteArrayCompare(scratchPad, (short) 0, firstJan2020, (short) 0,
         (short) 8) < 0) {

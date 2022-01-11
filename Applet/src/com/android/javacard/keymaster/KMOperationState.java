@@ -185,7 +185,7 @@ public class KMOperationState {
     short obj;
     while (index < length) {
       obj = KMInteger.instance(userSecureIds, (short) (offset + index * 8), (short) 8);
-      KMArray.cast(arrObj).add(index, obj);
+      KMArray.add(arrObj, index, obj);
       index++;
     }
     return KMIntegerArrayTag.instance(KMType.ULONG_ARRAY_TAG, KMType.USER_SECURE_ID, arrObj);
@@ -204,11 +204,11 @@ public class KMOperationState {
     while (index < length) {
       obj = KMIntegerArrayTag.cast(integerArrayPtr).get(index);
       Util.arrayCopyNonAtomic(
-          KMInteger.cast(obj).getBuffer(),
-          KMInteger.cast(obj).getStartOff(),
+          KMInteger.getBuffer(obj),
+          KMInteger.getStartOff(obj),
           userSecureIds,
-          (short) (8 - KMInteger.cast(obj).length() + offset + 8 * index),
-          KMInteger.cast(obj).length()
+          (short) (8 - KMInteger.length(obj) + offset + 8 * index),
+          KMInteger.length(obj)
       );
       index++;
     }

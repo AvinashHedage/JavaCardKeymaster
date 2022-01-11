@@ -132,8 +132,7 @@ public class KMIntegerTag extends KMTag {
   }
 
   public short length() {
-    KMInteger obj = KMInteger.cast(getValue());
-    return obj.length();
+    return KMInteger.length(getValue());
   }
 
   private static boolean validateKey(short key) {
@@ -156,8 +155,8 @@ public class KMIntegerTag extends KMTag {
       ptr = KMKeyParameters.findTag(KMType.UINT_TAG, tagKey, keyParameters);
       if (ptr != KMType.INVALID_VALUE) {
         ptr = KMIntegerTag.cast(ptr).getValue();
-        if (KMInteger.cast(ptr).getSignificantShort() == 0) {
-          return KMInteger.cast(ptr).getShort();
+        if (KMInteger.getSignificantShort(ptr) == 0) {
+          return KMInteger.getShort(ptr);
         }
       }
     }
@@ -171,7 +170,7 @@ public class KMIntegerTag extends KMTag {
       ptr = KMKeyParameters.findTag(tagType, tagKey, keyParameters);
       if (ptr != KMType.INVALID_VALUE) {
         ptr = KMIntegerTag.cast(ptr).getValue();
-        return KMInteger.cast(ptr).value(buf, offset);
+        return KMInteger.value(ptr, buf, offset);
       }
     }
     return KMType.INVALID_VALUE;
@@ -179,10 +178,10 @@ public class KMIntegerTag extends KMTag {
 
   public boolean isValidKeySize(byte alg) {
     short val = KMIntegerTag.cast(KMType.instanceTable[KM_INTEGER_TAG_OFFSET]).getValue();
-    if (KMInteger.cast(val).getSignificantShort() != 0) {
+    if (KMInteger.getSignificantShort(val) != 0) {
       return false;
     }
-    val = KMInteger.cast(val).getShort();
+    val = KMInteger.getShort(val);
     switch (alg) {
       case KMType.RSA:
         if (val == 2048) {

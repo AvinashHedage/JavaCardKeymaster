@@ -45,11 +45,10 @@ public class KMCoseHeaders extends KMCoseMap {
     short arrPtr = KMArray.instance((short) 4);
     // CoseKey is internally an Array so evaluate it separately.
     short coseKeyValueExp = KMCosePairCoseKeyTag.exp();
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add((short) 0, KMCosePairIntegerTag.exp());
-    arr.add((short) 1, KMCosePairNegIntegerTag.exp());
-    arr.add((short) 2, KMCosePairByteBlobTag.exp());
-    arr.add((short) 3, coseKeyValueExp);
+    KMArray.add(arrPtr, (short) 0, KMCosePairIntegerTag.exp());
+    KMArray.add(arrPtr, (short) 1, KMCosePairNegIntegerTag.exp());
+    KMArray.add(arrPtr, (short) 2, KMCosePairByteBlobTag.exp());
+    KMArray.add(arrPtr, (short) 3, coseKeyValueExp);
     return KMCoseHeaders.instance(arrPtr);
   }
 
@@ -79,7 +78,7 @@ public class KMCoseHeaders extends KMCoseMap {
   @Override
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   @Override
@@ -96,33 +95,33 @@ public class KMCoseHeaders extends KMCoseMap {
     short keyPtr;
     boolean found = false;
     while (index < len) {
-      tagType = KMCosePairTagType.getTagValueType(KMArray.cast(arr).get(index));
+      tagType = KMCosePairTagType.getTagValueType(KMArray.get(arr, index));
       switch (tagType) {
         case KMType.COSE_PAIR_BYTE_BLOB_TAG_TYPE:
-          keyPtr = KMCosePairByteBlobTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairByteBlobTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == (byte) KMCosePairTagType.getKeyValueShort(keyPtr)) {
-            valPtr = KMCosePairByteBlobTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairByteBlobTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;
         case KMType.COSE_PAIR_COSE_KEY_TAG_TYPE:
-          keyPtr = KMCosePairCoseKeyTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairCoseKeyTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == (byte) KMCosePairTagType.getKeyValueShort(keyPtr)) {
-            valPtr = KMCosePairCoseKeyTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairCoseKeyTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;
         case KMType.COSE_PAIR_INT_TAG_TYPE:
-          keyPtr = KMCosePairIntegerTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairIntegerTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == (byte) KMCosePairTagType.getKeyValueShort(keyPtr)) {
-            valPtr = KMCosePairIntegerTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairIntegerTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;
         case KMType.COSE_PAIR_NEG_INT_TAG_TYPE:
-          keyPtr = KMCosePairNegIntegerTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairNegIntegerTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == (byte) KMCosePairTagType.getKeyValueShort(keyPtr)) {
-            valPtr = KMCosePairNegIntegerTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairNegIntegerTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;
@@ -168,23 +167,23 @@ public class KMCoseHeaders extends KMCoseMap {
         ptr = getValueType(headerTags[tagIndex]);
         switch (KMType.getType(ptr)) {
           case KMType.BYTE_BLOB_TYPE:
-            if ((KMByteBlob.cast(value).length() == KMByteBlob.cast(ptr).length()) &&
+            if ((KMByteBlob.length(value) == KMByteBlob.length(ptr)) &&
                 (0 ==
-                    Util.arrayCompare(KMByteBlob.cast(value).getBuffer(),
-                        KMByteBlob.cast(value).getStartOff(),
-                        KMByteBlob.cast(ptr).getBuffer(),
-                        KMByteBlob.cast(ptr).getStartOff(),
-                        KMByteBlob.cast(ptr).length()))) {
+                    Util.arrayCompare(KMByteBlob.getBuffer(value),
+                        KMByteBlob.getStartOff(value),
+                        KMByteBlob.getBuffer(ptr),
+                        KMByteBlob.getStartOff(ptr),
+                        KMByteBlob.length(ptr)))) {
               valid = true;
             }
             break;
           case KMType.INTEGER_TYPE:
-            if (value == KMInteger.cast(ptr).getShort()) {
+            if (value == KMInteger.getShort(ptr)) {
               valid = true;
             }
             break;
           case KMType.NEG_INTEGER_TYPE:
-            if ((byte) value == (byte) KMNInteger.cast(ptr).getShort()) {
+            if ((byte) value == (byte) KMNInteger.getShort(ptr)) {
               valid = true;
             }
             break;

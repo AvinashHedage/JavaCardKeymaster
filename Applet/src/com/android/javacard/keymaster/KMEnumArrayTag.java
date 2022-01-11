@@ -119,7 +119,7 @@ public class KMEnumArrayTag extends KMTag {
 
   public short length() {
     short blobPtr = Util.getShort(heap, (short) (KMType.instanceTable[KM_ENUM_ARRAY_TAG_OFFSET] + TLV_HEADER_SIZE + 4));
-    return KMByteBlob.cast(blobPtr).length();
+    return KMByteBlob.length(blobPtr);
   }
 
   public static void create() {
@@ -156,11 +156,11 @@ public class KMEnumArrayTag extends KMTag {
       return KMType.INVALID_VALUE;
     }
     tag = KMEnumArrayTag.cast(tag).getValues();
-    return KMByteBlob.cast(tag).getValues(buf, start);
+    return KMByteBlob.getValues(tag, buf, start);
   }
 
   public short get(short index) {
-    return KMByteBlob.cast(getValues()).get(index);
+    return KMByteBlob.get(getValues(), index);
   }
 
   public static boolean contains(short tagId, short tagValue, short params) {

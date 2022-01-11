@@ -101,7 +101,7 @@ public class KMBignumTag extends KMTag {
 
   public short length() {
     short blobPtr = Util.getShort(heap, (short) (KMType.instanceTable[KM_BIGNUM_TAG_OFFSET] + TLV_HEADER_SIZE + 4));
-    return KMByteBlob.cast(blobPtr).length();
+    return KMByteBlob.length(blobPtr);
   }
 
   private static boolean validateKey(short key) {

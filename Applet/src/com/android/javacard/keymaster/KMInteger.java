@@ -114,21 +114,21 @@ public class KMInteger extends KMType {
   }
 
   // Get the length of the integer
-  public short length() {
+  private short length() {
     return Util.getShort(heap, (short) (getBaseOffset() + 1));
   }
 
   // Get the buffer pointer in which blob is contained.
-  public byte[] getBuffer() {
+  private byte[] getBuffer() {
     return heap;
   }
 
   // Get the start of value
-  public short getStartOff() {
+  private short getStartOff() {
     return (short) (getBaseOffset() + TLV_HEADER_SIZE);
   }
 
-  public void getValue(byte[] dest, short destOff, short length) {
+  private void getValue(byte[] dest, short destOff, short length) {
     if (length < length()) {
       KMException.throwIt(KMError.UNKNOWN_ERROR);
     }
@@ -139,15 +139,15 @@ public class KMInteger extends KMType {
     Util.arrayCopyNonAtomic(heap, getStartOff(), dest, destOff, length);
   }
 
-  public void setValue(byte[] src, short srcOff) {
+  private void setValue(byte[] src, short srcOff) {
     Util.arrayCopyNonAtomic(src, srcOff, heap, getStartOff(), length());
   }
 
-  public short value(byte[] dest, short destOff) {
+  private short value(byte[] dest, short destOff) {
     Util.arrayCopyNonAtomic(heap, getStartOff(), dest, destOff, length());
     return length();
   }
-  public short toLittleEndian(byte[] dest, short destOff) {
+  private short toLittleEndian(byte[] dest, short destOff) {
     short index = (short) (length() - 1);
     while (index >= 0) {
       dest[destOff++] = heap[(short) (instanceTable[KM_INTEGER_OFFSET] + TLV_HEADER_SIZE + index)];
@@ -156,19 +156,19 @@ public class KMInteger extends KMType {
     return length();
   }
 
-  public short getShort() {
+  protected short getShort() {
     return Util.getShort(heap, (short) (getStartOff() + 2));
   }
 
-  public short getSignificantShort() {
+  private short getSignificantShort() {
     return Util.getShort(heap, getStartOff());
   }
 
-  public byte getByte() {
+  private byte getByte() {
     return heap[(short) (getStartOff() + 3)];
   }
 
-  public boolean isZero() {
+  private boolean isZero() {
     if (getShort() == 0 && getSignificantShort() == 0) {
       return true;
     }
@@ -180,10 +180,10 @@ public class KMInteger extends KMType {
     short num2Buf = repository.alloc((short) 8);
     Util.arrayFillNonAtomic(repository.getHeap(), num1Buf, (short) 8, (byte) 0);
     Util.arrayFillNonAtomic(repository.getHeap(), num2Buf, (short) 8, (byte) 0);
-    short len = KMInteger.cast(num1).length();
-    KMInteger.cast(num1).getValue(repository.getHeap(), (short) (num1Buf + (short) (8 - len)), len);
-    len = KMInteger.cast(num2).length();
-    KMInteger.cast(num2).getValue(repository.getHeap(), (short) (num2Buf + (short) (8 - len)), len);
+    short len = KMInteger.length(num1);
+    KMInteger.getValue(num1, repository.getHeap(), (short) (num1Buf + (short) (8 - len)), len);
+    len = KMInteger.length(num2);
+    KMInteger.getValue(num2, repository.getHeap(), (short) (num2Buf + (short) (8 - len)), len);
     return KMInteger.unsignedByteArrayCompare(
         repository.getHeap(), num1Buf,
         repository.getHeap(), num2Buf,
@@ -212,5 +212,52 @@ public class KMInteger extends KMType {
 
   protected short getBaseOffset() {
     return instanceTable[KM_INTEGER_OFFSET];
+  }
+  
+  // Get the length of the integer
+  public static short length(short bPtr) {
+    return KMInteger.cast(bPtr).length();
+  }
+
+  // Get the buffer pointer in which blob is contained.
+  public static byte[] getBuffer(short bPtr) {
+    return  KMInteger.cast(bPtr).getBuffer();
+  }
+
+  // Get the start of value
+  public static short getStartOff(short bPtr) {
+    return KMInteger.cast(bPtr).getStartOff();
+  }
+
+  public static void getValue(short bPtr, byte[] dest, short destOff, short length) {
+    KMInteger.cast(bPtr).getValue(dest, destOff, length);
+  }
+
+  public static void setValue(short bPtr, byte[] src, short srcOff) {
+	KMInteger.cast(bPtr).setValue(src, srcOff);
+  }
+
+  public static short value(short bPtr, byte[] dest, short destOff) {
+	return KMInteger.cast(bPtr).value(dest, destOff);
+  }
+  
+  public static short toLittleEndian(short bPtr, byte[] dest, short destOff) {
+	return KMInteger.cast(bPtr).toLittleEndian(dest, destOff);
+  }
+
+  public static short getShort(short bPtr) {
+	return KMInteger.cast(bPtr).getShort();
+  }
+
+  public static short getSignificantShort(short bPtr) {
+    return KMInteger.cast(bPtr).getSignificantShort();
+  }
+
+  public static byte getByte(short bPtr) {
+	return KMInteger.cast(bPtr).getByte();
+  }
+
+  public static boolean isZero(short bPtr) {
+	return KMInteger.cast(bPtr).isZero();
   }
 }

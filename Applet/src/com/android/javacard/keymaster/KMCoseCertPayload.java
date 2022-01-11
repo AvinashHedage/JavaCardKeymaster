@@ -43,9 +43,8 @@ public class KMCoseCertPayload extends KMCoseMap {
 
   public static short exp() {
     short arrPtr = KMArray.instance((short) 2);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add((short) 0, KMCosePairTextStringTag.exp());
-    arr.add((short) 1, KMCosePairByteBlobTag.exp());
+    KMArray.add(arrPtr, (short) 0, KMCosePairTextStringTag.exp());
+    KMArray.add(arrPtr, (short) 1, KMCosePairByteBlobTag.exp());
     return KMCoseCertPayload.instance(arrPtr);
   }
 
@@ -74,7 +73,7 @@ public class KMCoseCertPayload extends KMCoseMap {
   @Override
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   @Override
@@ -91,20 +90,20 @@ public class KMCoseCertPayload extends KMCoseMap {
     short tagType;
     boolean found = false;
     while (index < length) {
-      tagType = KMCosePairTagType.getTagValueType(KMArray.cast(arr).get(index));
+      tagType = KMCosePairTagType.getTagValueType(KMArray.get(arr, index));
       switch (tagType) {
         case KMType.COSE_PAIR_BYTE_BLOB_TAG_TYPE:
-          keyPtr = KMCosePairByteBlobTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairByteBlobTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == KMCosePairTagType.getKeyValueShort(keyPtr) &&
             significantKey == KMCosePairTagType.getKeyValueSignificantShort(keyPtr)) {
-            valPtr = KMCosePairByteBlobTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairByteBlobTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;
         case KMType.COSE_PAIR_TEXT_STR_TAG_TYPE:
-          keyPtr = KMCosePairTextStringTag.cast(KMArray.cast(arr).get(index)).getKeyPtr();
+          keyPtr = KMCosePairTextStringTag.cast(KMArray.get(arr, index)).getKeyPtr();
           if (key == (byte) KMCosePairTagType.getKeyValueShort(keyPtr)) {
-            valPtr = KMCosePairTextStringTag.cast(KMArray.cast(arr).get(index)).getValuePtr();
+            valPtr = KMCosePairTextStringTag.cast(KMArray.get(arr, index)).getValuePtr();
             found = true;
           }
           break;

@@ -111,9 +111,9 @@ public class KMCosePairByteBlobTag extends KMCosePairTagType {
     short type = KMType.getType(keyPtr);
     short offset = 0;
     if (type == INTEGER_TYPE) {
-      offset = KMInteger.cast(keyPtr).getStartOff();
+      offset = KMInteger.getStartOff(keyPtr);
     } else if (type == NEG_INTEGER_TYPE) {
-      offset = KMNInteger.cast(keyPtr).getStartOff();
+      offset = KMNInteger.getStartOff(keyPtr);
     } else {
       ISOException.throwIt(ISO7816.SW_DATA_INVALID);
     }

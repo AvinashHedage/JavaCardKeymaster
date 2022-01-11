@@ -32,16 +32,15 @@ public class KMKeymintSpecification implements KMSpecification {
     final byte version = 1;
     // Make the response
     short respPtr = KMArray.instance((short) 6);
-    KMArray resp = KMArray.cast(respPtr);
-    resp.add((short) 0, KMInteger.uint_16(KMError.OK));
-    resp.add((short) 1, KMInteger.uint_8(version));
-    resp.add((short) 2, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
-    resp.add(
+    KMArray.add(respPtr, (short) 0, KMInteger.uint_16(KMError.OK));
+    KMArray.add(respPtr, (short) 1, KMInteger.uint_8(version));
+    KMArray.add(respPtr, (short) 2, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
+    KMArray.add(respPtr,
         (short) 3,
         KMByteBlob.instance(
             JAVACARD_KEYMINT_DEVICE, (short) 0, (short) JAVACARD_KEYMINT_DEVICE.length));
-    resp.add((short) 4, KMByteBlob.instance(GOOGLE, (short) 0, (short) GOOGLE.length));
-    resp.add((short) 5, KMInteger.uint_8((byte) 1));
+    KMArray.add(respPtr, (short) 4, KMByteBlob.instance(GOOGLE, (short) 0, (short) GOOGLE.length));
+    KMArray.add(respPtr, (short) 5, KMInteger.uint_8((byte) 1));
     return respPtr;
   }
 
@@ -94,10 +93,10 @@ public class KMKeymintSpecification implements KMSpecification {
       arrayLen = 3;
     }
     short params = KMArray.instance((short) arrayLen);
-    KMArray.cast(params).add((short) 0, KMKeyParameters.cast(hwParams).getVals());
-    KMArray.cast(params).add((short) 1, KMKeyParameters.cast(hiddenParams).getVals());
+    KMArray.add(params, (short) 0, KMKeyParameters.cast(hwParams).getVals());
+    KMArray.add(params, (short) 1, KMKeyParameters.cast(hiddenParams).getVals());
     if (3 == arrayLen) {
-      KMArray.cast(params).add((short) 2, pubKey);
+      KMArray.add(params, (short) 2, pubKey);
     }
     return params;
   }
@@ -151,7 +150,7 @@ public class KMKeymintSpecification implements KMSpecification {
       serialNum = KMBignumTag.cast(serialNum).getValue();
     } else {
       serialNum = KMByteBlob.instance((short) 1);
-      KMByteBlob.cast(serialNum).add((short) 0, (byte) 1);
+      KMByteBlob.add(serialNum, (short) 0, (byte) 1);
     }
     cert.serialNumber(serialNum);
     return cert;
@@ -187,7 +186,7 @@ public class KMKeymintSpecification implements KMSpecification {
 
   @Override
   public short getConfirmationToken(short confToken, short keyParams) {
-    if (0 == KMByteBlob.cast(confToken).length()) {
+    if (0 == KMByteBlob.length(confToken)) {
       KMException.throwIt(KMError.NO_USER_CONFIRMATION);
     }
     return confToken;

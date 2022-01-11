@@ -325,12 +325,12 @@ public class KMEncoder {
   }
 
   private void encodeArray(short obj) {
-    writeMajorTypeWithLength(ARRAY_TYPE, KMArray.cast(obj).length());
-    short len = KMArray.cast(obj).length();
+    writeMajorTypeWithLength(ARRAY_TYPE, KMArray.length(obj));
+    short len = KMArray.length(obj);
     short index = (short) (len - 1);
     short subObj;
     while (index >= 0) {
-      subObj = KMArray.cast(obj).get(index);
+      subObj = KMArray.get(obj, index);
       if (subObj != KMType.INVALID_VALUE)
         encode(subObj);
       index--;
@@ -356,12 +356,12 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeAsMap(short obj) {
-    writeMajorTypeWithLength(MAP_TYPE, KMArray.cast(obj).length());
-    short len = KMArray.cast(obj).length();
+    writeMajorTypeWithLength(MAP_TYPE, KMArray.length(obj));
+    short len = KMArray.length(obj);
     short index = (short) (len - 1);
     short inst;
     while (index >= 0) {
-      inst = KMArray.cast(obj).get(index);
+      inst = KMArray.get(obj, index);
       encode(inst);
       index--;
     }
@@ -488,18 +488,18 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeNegInteger(short obj) {
-    byte[] val = KMNInteger.cast(obj).getBuffer();
-    short len = KMNInteger.cast(obj).length();
-    short startOff = KMNInteger.cast(obj).getStartOff();
+    byte[] val = KMNInteger.getBuffer(obj);
+    short len = KMNInteger.length(obj);
+    short startOff = KMNInteger.getStartOff(obj);
     short msbIndex = applyNegIntegerEncodingRule(val, startOff, len);
     encodeInteger(val, len, startOff, NEG_INT_TYPE);
     removeNegIntegerEncodingRule(val, startOff, len, msbIndex);
   }
 
   private void encodeUnsignedInteger(short obj) {
-    byte[] val = KMInteger.cast(obj).getBuffer();
-    short len = KMInteger.cast(obj).length();
-    short startOff = KMInteger.cast(obj).getStartOff();
+    byte[] val = KMInteger.getBuffer(obj);
+    short len = KMInteger.length(obj);
+    short startOff = KMInteger.getStartOff(obj);
     encodeInteger(val, len, startOff, UINT_TYPE);
   }
 
@@ -523,9 +523,9 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeByteBlob(short obj) {
-    writeMajorTypeWithLength(BYTES_TYPE, KMByteBlob.cast(obj).length());
-    writeBytes(KMByteBlob.cast(obj).getBuffer(), KMByteBlob.cast(obj).getStartOff(),
-        KMByteBlob.cast(obj).length());
+    writeMajorTypeWithLength(BYTES_TYPE, KMByteBlob.length(obj));
+    writeBytes(KMByteBlob.getBuffer(obj), KMByteBlob.getStartOff(obj),
+        KMByteBlob.length(obj));
   }
 
   public short getEncodedLength(short ptr) {
@@ -617,12 +617,12 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private short getEncodedArrayLen(short obj) {
-    short arrLen = KMArray.cast(obj).length();
+    short arrLen = KMArray.length(obj);
     short len = getEncodedBytesLength(arrLen);
     short index = 0;
     short subObj;
     while (index < arrLen) {
-      subObj = KMArray.cast(obj).get(index);
+      subObj = KMArray.get(obj, index);
       if (subObj != KMType.INVALID_VALUE)
         len += getEncodedLength(subObj);
       index++;
@@ -645,21 +645,21 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private short getEncodedByteBlobLength(short obj) {
-    short len = KMByteBlob.cast(obj).length();
+    short len = KMByteBlob.length(obj);
     len += getEncodedBytesLength(len);
     return len;
   }
 
   private short getEncodedTextStringLength(short obj) {
-    short len = KMTextString.cast(obj).length();
-    len += getEncodedBytesLength(len);
-    return len;
+    //short len = KMTextString.byteBlobLength(obj);
+    //len += getEncodedBytesLength(len);
+    return 0;//len;
   }
 
   private short getEncodedNegIntegerLength(short obj) {
-    byte[] buf = KMNInteger.cast(obj).getBuffer();
-    short len = KMNInteger.cast(obj).length();
-    short offset = KMNInteger.cast(obj).getStartOff();
+    byte[] buf = KMNInteger.getBuffer(obj);
+    short len = KMNInteger.length(obj);
+    short offset = KMNInteger.getStartOff(obj);
     short msbIndex = applyNegIntegerEncodingRule(buf, offset, len);
     short ret = getEncodedIntegerLength(buf, offset, len);
     removeNegIntegerEncodingRule(buf, offset, len, msbIndex);
@@ -691,9 +691,9 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private short getEncodedIntegerLength(short obj) {
-    byte[] val = KMInteger.cast(obj).getBuffer();
-    short len = KMInteger.cast(obj).length();
-    short startOff = KMInteger.cast(obj).getStartOff();
+    byte[] val = KMInteger.getBuffer(obj);
+    short len = KMInteger.length(obj);
+    short startOff = KMInteger.getStartOff(obj);
     return getEncodedIntegerLength(val, startOff, len);
   }
 

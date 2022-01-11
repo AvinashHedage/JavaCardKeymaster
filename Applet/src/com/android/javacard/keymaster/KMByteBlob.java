@@ -137,4 +137,49 @@ public class KMByteBlob extends KMType {
   public void setLength(short len){
     Util.setShort(heap, (short)(getBaseOffset() + 1), len);
   }
+  
+
+  public static void add(short bPtr, short index, byte val) {
+	  cast(bPtr).add(index, val);
+  }
+  
+  public static byte get(short bPtr, short index) {
+	return cast(bPtr).get(index);
+  }
+  
+  public static short getStartOff(short bPtr) {
+    return cast(bPtr).getStartOff();
+  }
+  
+  public static short length(short bPtr) {
+     return cast(bPtr).length();
+  }
+  
+  public static byte[] getBuffer(short bPtr) {
+	 return cast(bPtr).getBuffer();    
+  }
+  
+  public static void getValue(short bPtr, byte[] destBuf, short destStart, short destLength) {
+	  cast(bPtr).getValue(destBuf, destStart, destLength);
+  }
+  
+  public static short getValues(short bPtr, byte[] destBuf, short destStart) {
+	  return cast(bPtr).getValues(destBuf, destStart);
+  }
+  
+  public static void setValue(short bPtr, byte[] srcBuf, short srcStart, short srcLength) {
+	  cast(bPtr).setValue(srcBuf, srcStart, srcLength);
+  }
+  
+  public static boolean isValid(short bPtr) {
+	  return cast(bPtr).isValid();
+  }
+  
+  public static void setStartOff(short bPtr, short offset){
+	  cast(bPtr).setStartOff(offset);
+  }
+  
+  public static void setLength(short bPtr, short len){
+	  cast(bPtr).setLength(len);
+  }
 }

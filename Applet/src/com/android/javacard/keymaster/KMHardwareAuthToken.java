@@ -43,13 +43,12 @@ public class KMHardwareAuthToken extends KMType {
 
   public static short exp() {
     short arrPtr = KMArray.instance((short) 6);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.exp());
-    arr.add(USER_ID, KMInteger.exp());
-    arr.add(AUTHENTICATOR_ID, KMInteger.exp());
-    arr.add(HW_AUTHENTICATOR_TYPE, KMEnum.instance(KMType.USER_AUTH_TYPE));
-    arr.add(TIMESTAMP, KMInteger.exp());
-    arr.add(MAC, KMByteBlob.exp());
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.exp());
+    KMArray.add(arrPtr, USER_ID, KMInteger.exp());
+    KMArray.add(arrPtr, AUTHENTICATOR_ID, KMInteger.exp());
+    KMArray.add(arrPtr, HW_AUTHENTICATOR_TYPE, KMEnum.instance(KMType.USER_AUTH_TYPE));
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.exp());
+    KMArray.add(arrPtr, MAC, KMByteBlob.exp());
     return instance(arrPtr);
   }
 
@@ -63,19 +62,17 @@ public class KMHardwareAuthToken extends KMType {
 
   public static short instance() {
     short arrPtr = KMArray.instance((short) 6);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.uint_16((short) 0));
-    arr.add(USER_ID, KMInteger.uint_16((short) 0));
-    arr.add(AUTHENTICATOR_ID, KMInteger.uint_16((short) 0));
-    arr.add(HW_AUTHENTICATOR_TYPE, KMEnum.instance(KMType.USER_AUTH_TYPE, KMType.USER_AUTH_NONE));
-    arr.add(TIMESTAMP, KMInteger.uint_16((short) 0));
-    arr.add(MAC, KMByteBlob.instance((short) 0));
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, USER_ID, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, AUTHENTICATOR_ID, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, HW_AUTHENTICATOR_TYPE, KMEnum.instance(KMType.USER_AUTH_TYPE, KMType.USER_AUTH_NONE));
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, MAC, KMByteBlob.instance((short) 0));
     return instance(arrPtr);
   }
 
   public static short instance(short vals) {
-    KMArray arr = KMArray.cast(vals);
-    if (arr.length() != 6) {
+    if (KMArray.length(vals) != 6) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
     }
     short ptr = KMType.instance(HW_AUTH_TOKEN_TYPE, (short) 2);
@@ -100,72 +97,72 @@ public class KMHardwareAuthToken extends KMType {
 
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   public short getChallenge() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(CHALLENGE);
+    return KMArray.get(arrPtr, CHALLENGE);
   }
 
   public void setChallenge(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(CHALLENGE, vals);
+    KMArray.add(arrPtr, CHALLENGE, vals);
   }
 
   public short getUserId() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(USER_ID);
+    return KMArray.get(arrPtr, USER_ID);
   }
 
   public void setUserId(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(USER_ID, vals);
+    KMArray.add(arrPtr, USER_ID, vals);
   }
 
   public short getAuthenticatorId() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(AUTHENTICATOR_ID);
+    return KMArray.get(arrPtr, AUTHENTICATOR_ID);
   }
 
   public void setAuthenticatorId(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(AUTHENTICATOR_ID, vals);
+    KMArray.add(arrPtr, AUTHENTICATOR_ID, vals);
   }
 
   public short getHwAuthenticatorType() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(HW_AUTHENTICATOR_TYPE);
+    return KMArray.get(arrPtr, HW_AUTHENTICATOR_TYPE);
   }
 
   public void setHwAuthenticatorType(short vals) {
     KMEnum.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(HW_AUTHENTICATOR_TYPE, vals);
+    KMArray.add(arrPtr, HW_AUTHENTICATOR_TYPE, vals);
   }
 
   public short getTimestamp() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(TIMESTAMP);
+    return KMArray.get(arrPtr, TIMESTAMP);
   }
 
   public void setTimestamp(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(TIMESTAMP, vals);
+    KMArray.add(arrPtr, TIMESTAMP, vals);
   }
 
   public short getMac() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(MAC);
+    return KMArray.get(arrPtr, MAC);
   }
 
   public void setMac(short vals) {
     KMByteBlob.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(MAC, vals);
+    KMArray.add(arrPtr, MAC, vals);
   }
 }

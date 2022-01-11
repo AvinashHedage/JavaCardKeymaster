@@ -81,8 +81,8 @@ public class KMTag extends KMType {
       return false;
     }
     pubExp = KMIntegerTag.cast(pubExp).getValue();
-    if(!(KMInteger.cast(pubExp).getShort() == 0x01 &&
-        KMInteger.cast(pubExp).getSignificantShort() == 0x01)){
+    if(!(KMInteger.getShort(pubExp) == 0x01 &&
+        KMInteger.getSignificantShort(pubExp) == 0x01)){
       return false;
     }
     return true;

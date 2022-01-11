@@ -54,7 +54,6 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
   private static final byte INS_PROVISION_ADDITIONAL_CERT_CHAIN_CMD =
       INS_KEYMINT_PROVIDER_APDU_START + 11;
 
-  private static final byte INS_KEYMINT_PROVIDER_APDU_END = 0x1F;
   public static final byte BOOT_KEY_MAX_SIZE = 32;
   public static final byte BOOT_HASH_MAX_SIZE = 32;
 
@@ -189,15 +188,15 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
     }
   }
 
-  private static void processProvisionDeviceUniqueKey(APDU apdu) {
+  private void processProvisionDeviceUniqueKey(APDU apdu) {
     // Re-purpose the apdu buffer as scratch pad.
     byte[] scratchPad = apdu.getBuffer();
     short arr = KMArray.instance((short) 1);
     short coseKeyExp = KMCoseKey.exp();
-    KMArray.cast(arr).add((short) 0, coseKeyExp); //[ CoseKey ]
+    KMArray.add(arr, (short) 0, coseKeyExp); //[ CoseKey ]
     arr = receiveIncoming(apdu, arr);
     // Get cose key.
-    short coseKey = KMArray.cast(arr).get((short) 0);
+    short coseKey = KMArray.get(arr, (short) 0);
     short pubKeyLen = KMCoseKey.cast(coseKey).getEcdsa256PublicKey(scratchPad, (short) 0);
     short privKeyLen = KMCoseKey.cast(coseKey).getPrivateKey(scratchPad, pubKeyLen);
     //Store the Device unique Key.
@@ -210,14 +209,14 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
     sendError(apdu, KMError.OK);
   }
 
-  private static void processProvisionAdditionalCertChain(APDU apdu) {
+  private void processProvisionAdditionalCertChain(APDU apdu) {
     // Prepare the expression to decode
     short headers = KMCoseHeaders.exp();
     short arrInst = KMArray.instance((short) 4);
-    KMArray.cast(arrInst).add((short) 0, KMByteBlob.exp());
-    KMArray.cast(arrInst).add((short) 1, headers);
-    KMArray.cast(arrInst).add((short) 2, KMByteBlob.exp());
-    KMArray.cast(arrInst).add((short) 3, KMByteBlob.exp());
+    KMArray.add(arrInst, (short) 0, KMByteBlob.exp());
+    KMArray.add(arrInst, (short) 1, headers);
+    KMArray.add(arrInst, (short) 2, KMByteBlob.exp());
+    KMArray.add(arrInst, (short) 3, KMByteBlob.exp());
     short coseSignArr = KMArray.exp(arrInst);
     short map = KMMap.instance((short) 1);
     KMMap.cast(map).add((short) 0, KMTextString.exp(), coseSignArr);
@@ -261,24 +260,24 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
   private void processProvisionAttestIdsCmd(APDU apdu) {
     short keyparams = KMKeyParameters.exp();
     short cmd = KMArray.instance((short) 1);
-    KMArray.cast(cmd).add((short) 0, keyparams);
+    KMArray.add(cmd, (short) 0, keyparams);
     short args = receiveIncoming(apdu, cmd);
 
-    short attData = KMArray.cast(args).get((short) 0);
+    short attData = KMArray.get(args, (short) 0);
     // persist attestation Ids - if any is missing then exception occurs
     setAttestationIds(attData);
   }
 
   public void setAttestationIds(short attIdVals) {
     KMKeyParameters instParam = KMKeyParameters.cast(attIdVals);
-    KMArray vals = KMArray.cast(instParam.getVals());
+    short vals = instParam.getVals();
     short index = 0;
-    short length = vals.length();
+    short length = KMArray.length(vals);
     short key;
     short type;
     short obj;
     while (index < length) {
-      obj = vals.get(index);
+      obj = KMArray.get(vals, index);
       key = KMTag.getKey(obj);
       type = KMTag.getTagType(obj);
 
@@ -286,8 +285,8 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
         KMException.throwIt(KMError.INVALID_ARGUMENT);
       }
       obj = KMByteTag.cast(obj).getValue();
-      ((KMAndroidSEProvider) seProvider).setAttestationId(key, KMByteBlob.cast(obj).getBuffer(),
-          KMByteBlob.cast(obj).getStartOff(), KMByteBlob.cast(obj).length());
+      ((KMAndroidSEProvider) seProvider).setAttestationId(key, KMByteBlob.getBuffer(obj),
+          KMByteBlob.getStartOff(obj),KMByteBlob.length(obj));
       index++;
     }
   }
@@ -303,18 +302,18 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
     short keyFormatPtr = KMEnum.instance(KMType.KEY_FORMAT);
     short blob = KMByteBlob.exp();
     short argsProto = KMArray.instance((short) 3);
-    KMArray.cast(argsProto).add((short) 0, keyparams);
-    KMArray.cast(argsProto).add((short) 1, keyFormatPtr);
-    KMArray.cast(argsProto).add((short) 2, blob);
+    KMArray.add(argsProto, (short) 0, keyparams);
+    KMArray.add(argsProto, (short) 1, keyFormatPtr);
+    KMArray.add(argsProto, (short) 2, blob);
 
     short args = receiveIncoming(apdu, argsProto);
     // Re-purpose the apdu buffer as scratch pad.
     byte[] scratchPad = apdu.getBuffer();
 
     // key params should have os patch, os version and verified root of trust
-    short keyParams = KMArray.cast(args).get((short) 0);
-    keyFormatPtr = KMArray.cast(args).get((short) 1);
-    short rawBlob = KMArray.cast(args).get((short) 2);
+    short keyParams = KMArray.get(args, (short) 0);
+    keyFormatPtr = KMArray.get(args, (short) 1);
+    short rawBlob = KMArray.get(args, (short) 2);
     // Key format must be RAW format
     short keyFormat = KMEnum.cast(keyFormatPtr).getVal();
     if (keyFormat != KMType.RAW) {
@@ -355,42 +354,42 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
     }
     // Decode EC Key
     short arrPtr = decodeRawECKey(rawBlob);
-    short secret = KMArray.cast(arrPtr).get((short) 0);
-    short pubKey = KMArray.cast(arrPtr).get((short) 1);
+    short secret = KMArray.get(arrPtr, (short) 0);
+    short pubKey = KMArray.get(arrPtr, (short) 1);
     // Check whether key can be created
     seProvider.importAsymmetricKey(
         KMType.EC,
-        KMByteBlob.cast(secret).getBuffer(),
-        KMByteBlob.cast(secret).getStartOff(),
-        KMByteBlob.cast(secret).length(),
-        KMByteBlob.cast(pubKey).getBuffer(),
-        KMByteBlob.cast(pubKey).getStartOff(),
-        KMByteBlob.cast(pubKey).length());
+        KMByteBlob.getBuffer(secret),
+        KMByteBlob.getStartOff(secret),
+        KMByteBlob.length(secret),
+        KMByteBlob.getBuffer(pubKey),
+        KMByteBlob.getStartOff(pubKey),
+        KMByteBlob.length(pubKey));
 
     // persist key
     seProvider.createAttestationKey(
-        KMByteBlob.cast(secret).getBuffer(),
-        KMByteBlob.cast(secret).getStartOff(),
-        KMByteBlob.cast(secret).length());
+        KMByteBlob.getBuffer(secret),
+        KMByteBlob.getStartOff(secret),
+        KMByteBlob.length(secret));
   }  
 
   private void processProvisionPreSharedSecretCmd(APDU apdu) {
     short blob = KMByteBlob.exp();
     short argsProto = KMArray.instance((short) 1);
-    KMArray.cast(argsProto).add((short) 0, blob);
+    KMArray.add(argsProto, (short) 0, blob);
     short args = receiveIncoming(apdu, argsProto);
 
-    short val = KMArray.cast(args).get((short) 0);
+    short val = KMArray.get(args, (short) 0);
 
     if (val != KMType.INVALID_VALUE
-        && KMByteBlob.cast(val).length() != SHARED_SECRET_KEY_SIZE) {
+        && KMByteBlob.length(val) != SHARED_SECRET_KEY_SIZE) {
       KMException.throwIt(KMError.INVALID_ARGUMENT);
     }
     // Persist shared Hmac.
     ((KMAndroidSEProvider) seProvider).createPresharedKey(
-        KMByteBlob.cast(val).getBuffer(),
-        KMByteBlob.cast(val).getStartOff(),
-        KMByteBlob.cast(val).length());
+        KMByteBlob.getBuffer(val),
+        KMByteBlob.getStartOff(val),
+        KMByteBlob.length(val));
 
   }
 
@@ -398,19 +397,19 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
   // in case if card reset event occurred. The clients of the Applet
   // has to extract the power reset status from the error code and
   // process accordingly.
-  private static short buildErrorStatus(short err) {
+  private short buildErrorStatus(short err) {
     short int32Ptr = KMInteger.instance((short) 4);
     short powerResetStatus = 0;
     if (((KMAndroidSEProvider) seProvider).isPowerReset()) {
       powerResetStatus = POWER_RESET_MASK_FLAG;
     }
 
-    Util.setShort(KMInteger.cast(int32Ptr).getBuffer(),
-        KMInteger.cast(int32Ptr).getStartOff(),
+    Util.setShort(KMInteger.getBuffer(int32Ptr),
+        KMInteger.getStartOff(int32Ptr),
         powerResetStatus);
 
-    Util.setShort(KMInteger.cast(int32Ptr).getBuffer(),
-        (short) (KMInteger.cast(int32Ptr).getStartOff() + 2),
+    Util.setShort(KMInteger.getBuffer(int32Ptr),
+        (short) (KMInteger.getStartOff(int32Ptr) + 2),
         err);
     // reset power reset status flag to its default value.
     //repository.restorePowerResetStatus(); //TODO
@@ -419,8 +418,8 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
 
   private void processGetProvisionStatusCmd(APDU apdu) {
     short resp = KMArray.instance((short) 2);
-    KMArray.cast(resp).add((short) 0, buildErrorStatus(KMError.OK));
-    KMArray.cast(resp).add((short) 1, KMInteger.uint_16(provisionStatus));
+    KMArray.add(resp, (short) 0, buildErrorStatus(KMError.OK));
+    KMArray.add(resp, (short) 1, KMInteger.uint_16(provisionStatus));
     sendOutgoing(apdu, resp);
   }
 
@@ -430,45 +429,45 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
     byte[] scratchPad = apdu.getBuffer();
     // Array of 4 expected arguments
     // Argument 0 Boot Patch level
-    KMArray.cast(argsProto).add((short) 0, KMInteger.exp());
+    KMArray.add(argsProto, (short) 0, KMInteger.exp());
     // Argument 1 Verified Boot Key
-    KMArray.cast(argsProto).add((short) 1, KMByteBlob.exp());
+    KMArray.add(argsProto, (short) 1, KMByteBlob.exp());
     // Argument 2 Verified Boot Hash
-    KMArray.cast(argsProto).add((short) 2, KMByteBlob.exp());
+    KMArray.add(argsProto, (short) 2, KMByteBlob.exp());
     // Argument 3 Verified Boot State
-    KMArray.cast(argsProto).add((short) 3, KMEnum.instance(KMType.VERIFIED_BOOT_STATE));
+    KMArray.add(argsProto, (short) 3, KMEnum.instance(KMType.VERIFIED_BOOT_STATE));
     // Argument 4 Device Locked
-    KMArray.cast(argsProto).add((short) 4, KMEnum.instance(KMType.DEVICE_LOCKED));
+    KMArray.add(argsProto, (short) 4, KMEnum.instance(KMType.DEVICE_LOCKED));
 
     short args = receiveIncoming(apdu, argsProto);
 
-    short bootParam = KMArray.cast(args).get((short) 0);
+    short bootParam = KMArray.get(args, (short) 0);
 
-    ((KMAndroidSEProvider) seProvider).setBootPatchLevel(KMInteger.cast(bootParam).getBuffer(),
-        KMInteger.cast(bootParam).getStartOff(),
-        KMInteger.cast(bootParam).length());
+    ((KMAndroidSEProvider) seProvider).setBootPatchLevel(KMInteger.getBuffer(bootParam),
+        KMInteger.getStartOff(bootParam),
+        KMInteger.length(bootParam));
 
-    bootParam = KMArray.cast(args).get((short) 1);
-    if (KMByteBlob.cast(bootParam).length() > BOOT_KEY_MAX_SIZE) {
+    bootParam = KMArray.get(args, (short) 1);
+    if (KMByteBlob.length(bootParam) > BOOT_KEY_MAX_SIZE) {
       KMException.throwIt(KMError.INVALID_ARGUMENT);
     }
-    ((KMAndroidSEProvider) seProvider).setBootKey(KMByteBlob.cast(bootParam).getBuffer(),
-        KMByteBlob.cast(bootParam).getStartOff(),
-        KMByteBlob.cast(bootParam).length());
+    ((KMAndroidSEProvider) seProvider).setBootKey(KMByteBlob.getBuffer(bootParam),
+        KMByteBlob.getStartOff(bootParam),
+        KMByteBlob.length(bootParam));
 
-    bootParam = KMArray.cast(args).get((short) 2);
-    if (KMByteBlob.cast(bootParam).length() > BOOT_HASH_MAX_SIZE) {
+    bootParam = KMArray.get(args, (short) 2);
+    if (KMByteBlob.length(bootParam) > BOOT_HASH_MAX_SIZE) {
       KMException.throwIt(KMError.INVALID_ARGUMENT);
     }
-    ((KMAndroidSEProvider) seProvider).setVerifiedBootHash(KMByteBlob.cast(bootParam).getBuffer(),
-        KMByteBlob.cast(bootParam).getStartOff(),
-        KMByteBlob.cast(bootParam).length());
+    ((KMAndroidSEProvider) seProvider).setVerifiedBootHash(KMByteBlob.getBuffer(bootParam),
+        KMByteBlob.getStartOff(bootParam),
+        KMByteBlob.length(bootParam));
 
-    bootParam = KMArray.cast(args).get((short) 3);
+    bootParam = KMArray.get(args, (short) 3);
     byte enumVal = KMEnum.cast(bootParam).getVal();
     ((KMAndroidSEProvider) seProvider).setBootState(enumVal);
 
-    bootParam = KMArray.cast(args).get((short) 4);
+    bootParam = KMArray.get(args, (short) 4);
     enumVal = KMEnum.cast(bootParam).getVal();
     ((KMAndroidSEProvider) seProvider).setDeviceLocked(enumVal == KMType.DEVICE_LOCKED_TRUE);
 

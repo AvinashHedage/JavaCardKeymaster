@@ -47,35 +47,33 @@ public class KMKeyParameters extends KMType {
 
   public static short exp() {
     short arrPtr = KMArray.instance((short) 11);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add((short) 0, KMEnum.instance(KMType.RULE, KMType.FAIL_ON_INVALID_TAGS));
-    arr.add((short) 1, KMIntegerTag.exp(UINT_TAG));
-    arr.add((short) 2, KMIntegerArrayTag.exp(UINT_ARRAY_TAG));
-    arr.add((short) 3, KMIntegerTag.exp(ULONG_TAG));
-    arr.add((short) 4, KMIntegerTag.exp(DATE_TAG));
-    arr.add((short) 5, KMIntegerArrayTag.exp(ULONG_ARRAY_TAG));
-    arr.add((short) 6, KMEnumTag.exp());
-    arr.add((short) 7, KMEnumArrayTag.exp());
-    arr.add((short) 8, KMByteTag.exp());
-    arr.add((short) 9, KMBoolTag.exp());
-    arr.add((short) 10, KMBignumTag.exp());
+    KMArray.add(arrPtr, (short) 0, KMEnum.instance(KMType.RULE, KMType.FAIL_ON_INVALID_TAGS));
+    KMArray.add(arrPtr, (short) 1, KMIntegerTag.exp(UINT_TAG));
+    KMArray.add(arrPtr, (short) 2, KMIntegerArrayTag.exp(UINT_ARRAY_TAG));
+    KMArray.add(arrPtr, (short) 3, KMIntegerTag.exp(ULONG_TAG));
+    KMArray.add(arrPtr, (short) 4, KMIntegerTag.exp(DATE_TAG));
+    KMArray.add(arrPtr, (short) 5, KMIntegerArrayTag.exp(ULONG_ARRAY_TAG));
+    KMArray.add(arrPtr, (short) 6, KMEnumTag.exp());
+    KMArray.add(arrPtr, (short) 7, KMEnumArrayTag.exp());
+    KMArray.add(arrPtr, (short) 8, KMByteTag.exp());
+    KMArray.add(arrPtr, (short) 9, KMBoolTag.exp());
+    KMArray.add(arrPtr, (short) 10, KMBignumTag.exp());
     return instance(arrPtr);
   }
 
   public static short expAny() {
     short arrPtr = KMArray.instance((short) 11);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add((short) 0, KMEnum.instance(KMType.RULE, KMType.IGNORE_INVALID_TAGS));
-    arr.add((short) 1, KMIntegerTag.exp(UINT_TAG));
-    arr.add((short) 2, KMIntegerArrayTag.exp(UINT_ARRAY_TAG));
-    arr.add((short) 3, KMIntegerTag.exp(ULONG_TAG));
-    arr.add((short) 4, KMIntegerTag.exp(DATE_TAG));
-    arr.add((short) 5, KMIntegerArrayTag.exp(ULONG_ARRAY_TAG));
-    arr.add((short) 6, KMEnumTag.exp());
-    arr.add((short) 7, KMEnumArrayTag.exp());
-    arr.add((short) 8, KMByteTag.exp());
-    arr.add((short) 9, KMBoolTag.exp());
-    arr.add((short) 10, KMBignumTag.exp());
+    KMArray.add(arrPtr, (short) 0, KMEnum.instance(KMType.RULE, KMType.IGNORE_INVALID_TAGS));
+    KMArray.add(arrPtr, (short) 1, KMIntegerTag.exp(UINT_TAG));
+    KMArray.add(arrPtr, (short) 2, KMIntegerArrayTag.exp(UINT_ARRAY_TAG));
+    KMArray.add(arrPtr, (short) 3, KMIntegerTag.exp(ULONG_TAG));
+    KMArray.add(arrPtr, (short) 4, KMIntegerTag.exp(DATE_TAG));
+    KMArray.add(arrPtr, (short) 5, KMIntegerArrayTag.exp(ULONG_ARRAY_TAG));
+    KMArray.add(arrPtr, (short) 6, KMEnumTag.exp());
+    KMArray.add(arrPtr, (short) 7, KMEnumArrayTag.exp());
+    KMArray.add(arrPtr, (short) 8, KMByteTag.exp());
+    KMArray.add(arrPtr, (short) 9, KMBoolTag.exp());
+    KMArray.add(arrPtr, (short) 10, KMBignumTag.exp());
     return instance(arrPtr);
   }
 
@@ -102,7 +100,7 @@ public class KMKeyParameters extends KMType {
 
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   public static short findTag(short tagType, short tagKey, short keyParam) {
@@ -111,15 +109,14 @@ public class KMKeyParameters extends KMType {
   }
 
   public short findTag(short tagType, short tagKey) {
-    KMArray vals = KMArray.cast(getVals());
     short index = 0;
-    short length = vals.length();
+    short length = KMArray.length(getVals());
     short key;
     short type;
     short ret = KMType.INVALID_VALUE;
     short obj;
     while (index < length) {
-      obj = vals.get(index);
+      obj = KMArray.get(getVals(), index);
       key = KMTag.getKey(obj);
       type = KMTag.getTagType(obj);
       if ((tagKey == key) && (tagType == type)) {
@@ -131,7 +128,7 @@ public class KMKeyParameters extends KMType {
     return ret;
   }
 
-  public static boolean hasUnsupportedTags(short keyParamsPtr) {
+  public boolean hasUnsupportedTags(short keyParamsPtr) {
     final short[] tagArr = {
         // Unsupported tags.
         KMType.BOOL_TAG, KMType.TRUSTED_USER_PRESENCE_REQUIRED,
@@ -143,10 +140,10 @@ public class KMKeyParameters extends KMType {
     short tagKey;
     short tagType;
     short arrPtr = KMKeyParameters.cast(keyParamsPtr).getVals();
-    short len = KMArray.cast(arrPtr).length();
+    short len = KMArray.length(arrPtr);
     while (index < len) {
       tagInd = 0;
-      tagPtr = KMArray.cast(arrPtr).get(index);
+      tagPtr = KMArray.get(arrPtr, index);
       tagKey = KMTag.getKey(tagPtr);
       tagType = KMTag.getTagType(tagPtr);
       while (tagInd < (short) tagArr.length) {
@@ -197,10 +194,10 @@ public class KMKeyParameters extends KMType {
     short tagKey;
     short tagType;
     short arrPtr = KMKeyParameters.cast(keyParamsPtr).getVals();
-    short len = KMArray.cast(arrPtr).length();
+    short len = KMArray.length(arrPtr);
     while (index < len) {
       tagInd = 0;
-      tagPtr = KMArray.cast(arrPtr).get(index);
+      tagPtr = KMArray.get(arrPtr, index);
       tagKey = KMTag.getKey(tagPtr);
       tagType = KMTag.getTagType(tagPtr);
       if (!isValidTag(tagType, tagKey)) {
@@ -273,10 +270,10 @@ public class KMKeyParameters extends KMType {
     short tagKey;
     short tagType;
     short arrPtr = KMKeyParameters.cast(keyParamsPtr).getVals();
-    short len = KMArray.cast(arrPtr).length();
+    short len = KMArray.length(arrPtr);
     while (index < len) {
       tagInd = 0;
-      tagPtr = KMArray.cast(arrPtr).get(index);
+      tagPtr = KMArray.get(arrPtr, index);
       tagKey = KMTag.getKey(tagPtr);
       tagType = KMTag.getTagType(tagPtr);
       if (!isValidTag(tagType, tagKey)) {
@@ -302,21 +299,21 @@ public class KMKeyParameters extends KMType {
     short hwEnf = KMArray.instance(len);
     sb = KMKeyParameters.cast(sb).getVals();
     tee = KMKeyParameters.cast(tee).getVals();
-    len = KMArray.cast(sb).length();
+    len = KMArray.length(sb);
     short src = 0;
     short dest =0;
     short val = 0;
     while(src < len){
-      val = KMArray.cast(sb).get(src);
-      KMArray.cast(hwEnf).add(dest, val);
+      val = KMArray.get(sb, src);
+      KMArray.add(hwEnf, dest, val);
       src++;
       dest++;
     }
     src = 0;
-    len = KMArray.cast(tee).length();
+    len = KMArray.length(tee);
     while(src < len){
-      val = KMArray.cast(tee).get(src);
-      KMArray.cast(hwEnf).add(dest, val);
+      val = KMArray.get(tee, src);
+      KMArray.add(hwEnf, dest, val);
       src++;
       dest++;
     }
@@ -340,10 +337,10 @@ public class KMKeyParameters extends KMType {
     short tagKey;
     short tagType;
     short arrPtr = KMKeyParameters.cast(keyParamsPtr).getVals();
-    short len = KMArray.cast(arrPtr).length();
+    short len = KMArray.length(arrPtr);
     while (index < len) {
       tagInd = 0;
-      tagPtr = KMArray.cast(arrPtr).get(index);
+      tagPtr = KMArray.get(arrPtr, index);
       tagKey = KMTag.getKey(tagPtr);
       tagType = KMTag.getTagType(tagPtr);
       if (!isValidTag(tagType, tagKey)) {
@@ -376,10 +373,10 @@ public class KMKeyParameters extends KMType {
     short tagKey;
     short tagType;
     short arrPtr = KMKeyParameters.cast(keyParamsPtr).getVals();
-    short len = KMArray.cast(arrPtr).length();
+    short len = KMArray.length(arrPtr);
     while (index < len) {
       tagInd = 0;
-      tagPtr = KMArray.cast(arrPtr).get(index);
+      tagPtr = KMArray.get(arrPtr, index);
       tagKey = KMTag.getKey(tagPtr);
       tagType = KMTag.getTagType(tagPtr);
       if (!isValidTag(tagType, tagKey)) {
@@ -460,7 +457,7 @@ public class KMKeyParameters extends KMType {
     short index = 0;
     short ptr = 0;
     while (index < len) {
-      KMArray.cast(arrPtr).add(index, Util.getShort(ptrArr, ptr));
+      KMArray.add(arrPtr, index, Util.getShort(ptrArr, ptr));
       index++;
       ptr += 2;
     }
@@ -499,7 +496,7 @@ public class KMKeyParameters extends KMType {
     while (index >= 0) {
       obj = findTag(customTags[(short) (index - 1)], customTags[index]);
       if (obj != KMType.INVALID_VALUE) {
-        KMArray.cast(arrPtr).deleteLastEntry();
+        KMArray.deleteLastEntry(arrPtr);
       }
       index -= 2;
     }
@@ -509,11 +506,11 @@ public class KMKeyParameters extends KMType {
     short authTime = KMIntegerTag.cast(authTimeOutTag).getValue();
     Util.arrayFillNonAtomic(scratchPad, offset, (short) 40, (byte) 0);
     Util.arrayCopyNonAtomic(
-        KMInteger.cast(authTime).getBuffer(),
-        KMInteger.cast(authTime).getStartOff(),
+        KMInteger.getBuffer(authTime),
+        KMInteger.getStartOff(authTime),
         scratchPad,
-        (short) (offset + 8 - KMInteger.cast(authTime).length()),
-        KMInteger.cast(authTime).length());
+        (short) (offset + 8 - KMInteger.length(authTime)),
+        KMInteger.length(authTime));
     KMUtils.convertToMilliseconds(scratchPad, offset, (short) (offset + 8), (short) (offset + 16));
     return KMIntegerTag.instance(KMType.ULONG_TAG, KMType.AUTH_TIMEOUT_MILLIS,
         KMInteger.uint_64(scratchPad, (short) (offset + 8)));

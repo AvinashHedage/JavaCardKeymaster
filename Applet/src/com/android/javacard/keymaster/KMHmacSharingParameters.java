@@ -38,9 +38,8 @@ public class KMHmacSharingParameters extends KMType {
 
   public static short exp() {
     short arrPtr = KMArray.instance((short) 2);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(SEED, KMByteBlob.exp());
-    arr.add(NONCE, KMByteBlob.exp());
+    KMArray.add(arrPtr, SEED, KMByteBlob.exp());
+    KMArray.add(arrPtr, NONCE, KMByteBlob.exp());
     return instance(arrPtr);
   }
 
@@ -59,7 +58,7 @@ public class KMHmacSharingParameters extends KMType {
 
   public static short instance(short vals) {
     short ptr = KMType.instance(HMAC_SHARING_PARAM_TYPE, (short) 2);
-    if (KMArray.cast(vals).length() != 2) {
+    if (KMArray.length(vals) != 2) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
     }
     Util.setShort(heap, (short) (ptr + TLV_HEADER_SIZE), vals);
@@ -83,28 +82,28 @@ public class KMHmacSharingParameters extends KMType {
 
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   public void setSeed(short vals) {
     KMByteBlob.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(SEED, vals);
+    KMArray.add(arrPtr, SEED, vals);
   }
 
   public void setNonce(short vals) {
     KMByteBlob.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(NONCE, vals);
+    KMArray.add(arrPtr, NONCE, vals);
   }
 
   public short getNonce() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(NONCE);
+    return KMArray.get(arrPtr, NONCE);
   }
 
   public short getSeed() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(SEED);
+    return KMArray.get(arrPtr, SEED);
   }
 }

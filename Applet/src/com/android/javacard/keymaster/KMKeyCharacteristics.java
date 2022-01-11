@@ -41,9 +41,8 @@ public class KMKeyCharacteristics extends KMType {
     short keystore = KMKeyParameters.exp();
     short arrPtr = KMArray.instance((short) 2);
 
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(STRONGBOX_ENFORCED, sb);
-    arr.add(KEYSTORE_ENFORCED, keystore);
+    KMArray.add(arrPtr, STRONGBOX_ENFORCED, sb);
+    KMArray.add(arrPtr, KEYSTORE_ENFORCED, keystore);
     return instance(arrPtr);
   }
 
@@ -53,10 +52,9 @@ public class KMKeyCharacteristics extends KMType {
     short keystore = KMKeyParameters.exp();
     short arrPtr = KMArray.instance((short) 3);
 
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(STRONGBOX_ENFORCED, sb);
-    arr.add(TEE_ENFORCED, tee);
-    arr.add(KEYSTORE_ENFORCED, keystore);
+    KMArray.add(arrPtr, STRONGBOX_ENFORCED, sb);
+    KMArray.add(arrPtr, TEE_ENFORCED, tee);
+    KMArray.add(arrPtr, KEYSTORE_ENFORCED, keystore);
     return instance(arrPtr);
   }
 
@@ -79,7 +77,7 @@ public class KMKeyCharacteristics extends KMType {
   }
 
   public static short instance(short vals) {
-    short length = KMArray.cast(vals).length();
+    short length = KMArray.length(vals);
     short ptr = KMType.instance(KEY_CHAR_TYPE, length);
     if (length != 3 && length != 2) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
@@ -105,12 +103,12 @@ public class KMKeyCharacteristics extends KMType {
 
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   public short getKeystoreEnforced() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(KEYSTORE_ENFORCED);
+    return KMArray.get(arrPtr, KEYSTORE_ENFORCED);
   }
 
   public short getTeeEnforced() {
@@ -118,29 +116,29 @@ public class KMKeyCharacteristics extends KMType {
     if (length() <= TEE_ENFORCED) {
       return KMType.INVALID_VALUE;
     }
-    return KMArray.cast(arrPtr).get(TEE_ENFORCED);
+    return KMArray.get(arrPtr, TEE_ENFORCED);
   }
 
   public short getStrongboxEnforced() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(STRONGBOX_ENFORCED);
+    return KMArray.get(arrPtr, STRONGBOX_ENFORCED);
   }
 
   public void setKeystoreEnforced(short ptr) {
     KMKeyParameters.cast(ptr);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(KEYSTORE_ENFORCED, ptr);
+    KMArray.add(arrPtr, KEYSTORE_ENFORCED, ptr);
   }
 
   public void setTeeEnforced(short ptr) {
     KMKeyParameters.cast(ptr);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(TEE_ENFORCED, ptr);
+    KMArray.add(arrPtr, TEE_ENFORCED, ptr);
   }
 
   public void setStrongboxEnforced(short ptr) {
     KMKeyParameters.cast(ptr);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(STRONGBOX_ENFORCED, ptr);
+    KMArray.add(arrPtr, STRONGBOX_ENFORCED, ptr);
   }
 }

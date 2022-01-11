@@ -53,10 +53,10 @@ public class KMPKCS8Decoder {
     short ecPublicInfo = KMByteBlob.instance(len);
     getBytes(ecPublicInfo);
     if(Util.arrayCompare(
-        KMByteBlob.cast(ecPublicInfo).getBuffer(),
-        KMByteBlob.cast(ecPublicInfo).getStartOff(),
+        KMByteBlob.getBuffer(ecPublicInfo),
+        KMByteBlob.getStartOff(ecPublicInfo),
         EC_ALGORITHM,
-        (short)0,KMByteBlob.cast(ecPublicInfo).length()) !=0){
+        (short)0,KMByteBlob.length(ecPublicInfo)) !=0){
       KMException.throwIt(KMError.UNKNOWN_ERROR);
     }
     len = header(ASN1_BIT_STRING);
@@ -88,19 +88,19 @@ public class KMPKCS8Decoder {
     len = header(ASN1_INTEGER);
     short privKey = KMByteBlob.instance(len);
     getBytes(privKey);
-    KMArray.cast(resp).add((short)0, modulus);
-    KMArray.cast(resp).add((short)1, pubKey);
-    KMArray.cast(resp).add((short)2, privKey);
+    KMArray.add(resp, (short)0, modulus);
+    KMArray.add(resp, (short)1, pubKey);
+    KMArray.add(resp, (short)2, privKey);
     return resp;
   }
   
   private void updateModulus(short blob) {
-	  byte[] buffer = KMByteBlob.cast(blob).getBuffer();
-	  short startOff = KMByteBlob.cast(blob).getStartOff();
-	  short len = KMByteBlob.cast(blob).length();
+	  byte[] buffer = KMByteBlob.getBuffer(blob);
+	  short startOff = KMByteBlob.getStartOff(blob);
+	  short len = KMByteBlob.length(blob);
 	  if(0 == buffer[startOff] && len > 256) {
-		  KMByteBlob.cast(blob).setStartOff(++startOff);
-		  KMByteBlob.cast(blob).setLength(--len);
+		  KMByteBlob.setStartOff(blob, ++startOff);
+		  KMByteBlob.setLength(blob, --len);
 	  }
   }
 
@@ -115,10 +115,10 @@ public class KMPKCS8Decoder {
     short blob = KMByteBlob.instance(len);
     getBytes(blob);
     if(Util.arrayCompare(
-        KMByteBlob.cast(blob).getBuffer(),
-        KMByteBlob.cast(blob).getStartOff(),
+        KMByteBlob.getBuffer(blob),
+        KMByteBlob.getStartOff(blob),
         alg,
-        (short)0,KMByteBlob.cast(blob).length()) !=0){
+        (short)0,KMByteBlob.length(blob)) !=0){
       KMException.throwIt(KMError.UNKNOWN_ERROR);
     }
   }
@@ -144,8 +144,8 @@ public class KMPKCS8Decoder {
     if(unusedBits != 0) KMException.throwIt(KMError.UNIMPLEMENTED);
     short pubKey = KMByteBlob.instance((short)(len -1));
     getBytes(pubKey);
-    KMArray.cast(resp).add((short)0, pubKey);
-    KMArray.cast(resp).add((short)1, privKey);
+    KMArray.add(resp, (short)0, pubKey);
+    KMArray.add(resp, (short)1, privKey);
     return resp;
   }
   private void validateTag0IfPresent(){
@@ -174,9 +174,9 @@ public class KMPKCS8Decoder {
   }
 
   private void getBytes(short blob){
-    short len = KMByteBlob.cast(blob).length();
-    Util.arrayCopyNonAtomic(data, cur, KMByteBlob.cast(blob).getBuffer(),
-        KMByteBlob.cast(blob).getStartOff(), len);
+    short len = KMByteBlob.length(blob);
+    Util.arrayCopyNonAtomic(data, cur, KMByteBlob.getBuffer(blob),
+        KMByteBlob.getStartOff(blob), len);
     incrementCursor(len);
   }
 
@@ -197,9 +197,9 @@ public class KMPKCS8Decoder {
   }
 
   public void init(short blob) {
-    data = KMByteBlob.cast(blob).getBuffer();
-    start = KMByteBlob.cast(blob).getStartOff();
-    length = KMByteBlob.cast(blob).length();
+    data = KMByteBlob.getBuffer(blob);
+    start = KMByteBlob.getStartOff(blob);
+    length = KMByteBlob.length(blob);
     cur = start;
   }
 

@@ -246,7 +246,7 @@ public class KMRepository implements KMUpgradable {
     short len = dataLength(id);
     if (len != 0) {
       short blob = KMByteBlob.instance(dataLength(id));
-      readDataEntry(id, KMByteBlob.cast(blob).getBuffer(), KMByteBlob.cast(blob).getStartOff());
+      readDataEntry(id, KMByteBlob.getBuffer(blob), KMByteBlob.getStartOff(blob));
       return blob;
     }
     return KMType.INVALID_VALUE;
@@ -258,7 +258,7 @@ public class KMRepository implements KMUpgradable {
     short blob = readData(BOOT_OS_VERSION);
     if (blob != KMType.INVALID_VALUE) {
       return KMInteger.uint_32(
-          KMByteBlob.cast(blob).getBuffer(), KMByteBlob.cast(blob).getStartOff());
+          KMByteBlob.getBuffer(blob), KMByteBlob.getStartOff(blob));
     } else {
       return KMInteger.uint_32(zero, (short) 0);
     }
@@ -268,7 +268,7 @@ public class KMRepository implements KMUpgradable {
     short blob = readData(VENDOR_PATCH_LEVEL);
     if (blob != KMType.INVALID_VALUE) {
       return KMInteger.uint_32(
-          KMByteBlob.cast(blob).getBuffer(), KMByteBlob.cast(blob).getStartOff());
+          KMByteBlob.getBuffer(blob), KMByteBlob.getStartOff(blob));
     } else {
       return KMInteger.uint_32(zero, (short) 0);
     }
@@ -278,7 +278,7 @@ public class KMRepository implements KMUpgradable {
     short blob = readData(BOOT_OS_PATCH_LEVEL);
     if (blob != KMType.INVALID_VALUE) {
       return KMInteger.uint_32(
-          KMByteBlob.cast(blob).getBuffer(), KMByteBlob.cast(blob).getStartOff());
+          KMByteBlob.getBuffer(blob), KMByteBlob.getStartOff(blob));
     } else {
       return KMInteger.uint_32(zero, (short) 0);
     }
@@ -289,7 +289,7 @@ public class KMRepository implements KMUpgradable {
     if (blob == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.INVALID_DATA);
     }
-    return (byte) ((getHeap())[KMByteBlob.cast(blob).getStartOff()]) == 0x01;
+    return (byte) ((getHeap())[KMByteBlob.getStartOff(blob)]) == 0x01;
   }
 
   public boolean getDeviceLock() {
@@ -311,8 +311,8 @@ public class KMRepository implements KMUpgradable {
   public short getDeviceTimeStamp() {
     short blob = readData(DEVICE_LOCKED_TIME);
     if (blob != KMType.INVALID_VALUE) {
-      return KMInteger.uint_64(KMByteBlob.cast(blob).getBuffer(),
-          KMByteBlob.cast(blob).getStartOff());
+      return KMInteger.uint_64(KMByteBlob.getBuffer(blob),
+          KMByteBlob.getStartOff(blob));
     } else {
       return KMInteger.uint_64(zero, (short) 0);
     }
@@ -387,7 +387,7 @@ public class KMRepository implements KMUpgradable {
 
   public boolean persistAuthTag(short authTag) {
 
-    if (KMByteBlob.cast(authTag).length() != AUTH_TAG_LENGTH) {
+    if (KMByteBlob.length(authTag) != AUTH_TAG_LENGTH) {
       KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
     }
 
@@ -396,8 +396,8 @@ public class KMRepository implements KMUpgradable {
     byte[] scratchPad = getHeap();
     writeAuthTagState(getHeap(), authTagEntry, (byte) 1);
     Util.arrayCopyNonAtomic(
-        KMByteBlob.cast(authTag).getBuffer(),
-        KMByteBlob.cast(authTag).getStartOff(),
+        KMByteBlob.getBuffer(authTag),
+        KMByteBlob.getStartOff(authTag),
         getHeap(), (short) (authTagEntry + 1), AUTH_TAG_LENGTH);
     Util.setShort(getHeap(), (short) (authTagEntry + AUTH_TAG_LENGTH + 1 + 2),
         (short) 1);
@@ -427,7 +427,7 @@ public class KMRepository implements KMUpgradable {
   }
 
   private short findTag(short authTag) {
-    if (KMByteBlob.cast(authTag).length() != AUTH_TAG_LENGTH) {
+    if (KMByteBlob.length(authTag) != AUTH_TAG_LENGTH) {
       KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
     }
     short index = 0;
@@ -441,8 +441,8 @@ public class KMRepository implements KMUpgradable {
             Util.arrayCompare(
                 getHeap(),
                 (short) (offset + 1),
-                KMByteBlob.cast(authTag).getBuffer(),
-                KMByteBlob.cast(authTag).getStartOff(),
+                KMByteBlob.getBuffer(authTag),
+                KMByteBlob.getStartOff(authTag),
                 AUTH_TAG_LENGTH);
         if (found == 0) {
           return (short) (index + AUTH_TAG_1);
@@ -459,8 +459,8 @@ public class KMRepository implements KMUpgradable {
     if (tag != KMType.INVALID_VALUE) {
       blob = readData(tag);
       Util.arrayCopyNonAtomic(
-          KMByteBlob.cast(blob).getBuffer(),
-          (short) (KMByteBlob.cast(blob).getStartOff() + AUTH_TAG_LENGTH + 1),
+          KMByteBlob.getBuffer(blob),
+          (short) (KMByteBlob.getStartOff(blob) + AUTH_TAG_LENGTH + 1),
           out,
           outOff,
           AUTH_TAG_COUNTER_SIZE);
@@ -476,13 +476,13 @@ public class KMRepository implements KMUpgradable {
       Util.arrayCopyNonAtomic(
           buf,
           off,
-          KMByteBlob.cast(dataPtr).getBuffer(),
-          (short) (KMByteBlob.cast(dataPtr).getStartOff() + AUTH_TAG_LENGTH + 1),
+          KMByteBlob.getBuffer(dataPtr),
+          (short) (KMByteBlob.getStartOff(dataPtr) + AUTH_TAG_LENGTH + 1),
           len);
       writeDataEntry(tag,
-          KMByteBlob.cast(dataPtr).getBuffer(),
-          KMByteBlob.cast(dataPtr).getStartOff(),
-          KMByteBlob.cast(dataPtr).length());
+          KMByteBlob.getBuffer(dataPtr),
+          KMByteBlob.getStartOff(dataPtr),
+          KMByteBlob.length(dataPtr));
     }
   }
 

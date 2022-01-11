@@ -104,12 +104,12 @@ public abstract class KMCoseMap extends KMType {
   }
 
   protected static void canonicalize(short arr) {
-    canonicalize(arr, KMArray.cast(arr).length());
+    canonicalize(arr, KMArray.length(arr));
   }
 
   private static void swap(short ptr, short firstIndex, short secondIndex) {
     if (KMType.getType(ptr) == KMType.ARRAY_TYPE) {
-      KMArray.cast(ptr).swap(firstIndex, secondIndex);
+      KMArray.swap(ptr, firstIndex, secondIndex);
     } else {
       KMMap.cast(ptr).swap(firstIndex, secondIndex);
     }
@@ -121,8 +121,8 @@ public abstract class KMCoseMap extends KMType {
     short firstKeyLen;
     short secondKeyLen;
     if (KMType.getType(ptr) == KMType.ARRAY_TYPE) {
-      firstKey = getKey(KMArray.cast(ptr).get(index));
-      secondKey = getKey(KMArray.cast(ptr).get((short) (index + 1)));
+      firstKey = getKey(KMArray.get(ptr, index));
+      secondKey = getKey(KMArray.get(ptr, (short) (index + 1)));
     } else { // Map
       firstKey = KMMap.cast(ptr).getKey(index);
       secondKey = KMMap.cast(ptr).getKey((short) (index + 1));

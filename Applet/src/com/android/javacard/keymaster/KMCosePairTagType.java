@@ -129,9 +129,9 @@ public abstract class KMCosePairTagType extends KMType {
     short type = KMType.getType(keyPtr);
     short value = 0;
     if (type == INTEGER_TYPE) {
-      value = KMInteger.cast(keyPtr).getShort();
+      value = KMInteger.getShort(keyPtr);
     } else if (type == NEG_INTEGER_TYPE) {
-      value = KMNInteger.cast(keyPtr).getShort();
+      value = KMNInteger.getShort(keyPtr);
     } else {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -148,9 +148,9 @@ public abstract class KMCosePairTagType extends KMType {
     short type = KMType.getType(keyPtr);
     short value = 0;
     if (type == INTEGER_TYPE) {
-      value = KMInteger.cast(keyPtr).getSignificantShort();
+      value = KMInteger.getSignificantShort(keyPtr);
     } else if (type == NEG_INTEGER_TYPE) {
-      value = KMNInteger.cast(keyPtr).getSignificantShort();
+      value = KMNInteger.getSignificantShort(keyPtr);
     } else {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -160,9 +160,9 @@ public abstract class KMCosePairTagType extends KMType {
   public static void getKeyValue(short keyPtr, byte[] dest, short offset, short len) {
     short type = KMType.getType(keyPtr);
     if (type == INTEGER_TYPE) {
-      KMInteger.cast(keyPtr).getValue(dest, offset, len);
+      KMInteger.getValue(keyPtr, dest, offset, len);
     } else if (type == NEG_INTEGER_TYPE) {
-      KMNInteger.cast(keyPtr).getValue(dest, offset, len);
+      KMNInteger.getValue(keyPtr, dest, offset, len);
     } else {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -178,9 +178,9 @@ public abstract class KMCosePairTagType extends KMType {
     short type = KMType.getType(keyPtr);
     short offset = 0;
     if (type == INTEGER_TYPE) {
-      offset = KMInteger.cast(keyPtr).getStartOff();
+      offset = KMInteger.getStartOff(keyPtr);
     } else if (type == NEG_INTEGER_TYPE) {
-      offset = KMNInteger.cast(keyPtr).getStartOff();
+      offset = KMNInteger.getStartOff(keyPtr);
     } else {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -197,9 +197,9 @@ public abstract class KMCosePairTagType extends KMType {
     short type = KMType.getType(keyPtr);
     short len = 0;
     if (type == INTEGER_TYPE) {
-      len = KMInteger.cast(keyPtr).length();
+      len = KMInteger.length(keyPtr);
     } else if (type == NEG_INTEGER_TYPE) {
-      len = KMNInteger.cast(keyPtr).length();
+      len = KMNInteger.length(keyPtr);
     } else {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }

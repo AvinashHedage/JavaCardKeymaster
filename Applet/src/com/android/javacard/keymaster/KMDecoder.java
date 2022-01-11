@@ -70,7 +70,7 @@ public class KMDecoder {
     scratchBuf[START_OFFSET] = startOff;
     scratchBuf[LEN_OFFSET] = (short) (startOff + length);
     short payloadLength = readMajorTypeWithPayloadLength(ARRAY_TYPE);
-    short expLength = KMArray.cast(exp).length();
+    short expLength = KMArray.length(exp);
     if (payloadLength > expLength) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
     }
@@ -79,9 +79,9 @@ public class KMDecoder {
     short type;
     short arrPtr = KMArray.instance(payloadLength);
     while (index < payloadLength) {
-      type = KMArray.cast(exp).get(index);
+      type = KMArray.get(exp, index);
       obj = decode(type);
-      KMArray.cast(arrPtr).add(index, obj);
+      KMArray.add(arrPtr, index, obj);
       index++;
     }
     return arrPtr;
@@ -295,7 +295,7 @@ public class KMDecoder {
     // get allowed key pairs
     short allowedKeyPairs = KMCoseMap.getVals(exp);
     short vals = KMArray.instance(payloadLength);
-    short length = KMArray.cast(allowedKeyPairs).length();
+    short length = KMArray.length(allowedKeyPairs);
     short index = 0;
     boolean tagFound;
     short tagInd;
@@ -311,11 +311,11 @@ public class KMDecoder {
       cosePairTagType = peekCosePairTagType();
       // Check against the allowed tags ...
       while (tagInd < length) {
-        tagClass = KMArray.cast(allowedKeyPairs).get(tagInd);
+        tagClass = KMArray.get(allowedKeyPairs, tagInd);
         allowedType = KMCosePairTagType.getTagValueType(tagClass);
         if (allowedType == cosePairTagType) {
           obj = decode(tagClass);
-          KMArray.cast(vals).add(index, obj);
+          KMArray.add(vals, index, obj);
           tagFound = true;
           break;
         }
@@ -334,10 +334,10 @@ public class KMDecoder {
     short payloadLength = readMajorTypeWithPayloadLength(MAP_TYPE);
     // allowed tags
     short allowedTags = KMKeyParameters.cast(exp).getVals();
-    short tagRule = KMArray.cast(allowedTags).get((short)0);
+    short tagRule = KMArray.get(allowedTags, (short)0);
     boolean ignoreInvalidTags = KMEnum.cast(tagRule).getVal() == KMType.IGNORE_INVALID_TAGS;
     short vals = KMArray.instance(payloadLength);
-    short length = KMArray.cast(allowedTags).length();
+    short length = KMArray.length(allowedTags);
     short index = 0;
     boolean tagFound;
     short tagInd;
@@ -352,7 +352,7 @@ public class KMDecoder {
       tagType = peekTagType();
       // Check against the allowed tags ...
       while (tagInd < length) {
-        tagClass = KMArray.cast(allowedTags).get(tagInd);
+        tagClass = KMArray.get(allowedTags, tagInd);
         allowedType = KMTag.getTagType(tagClass);
         // If it is part of allowed tags ...
         if (tagType == allowedType) {
@@ -360,7 +360,7 @@ public class KMDecoder {
           try {
             tagFound = true;
             obj = decode(tagClass);
-            KMArray.cast(vals).add(index, obj);
+            KMArray.add(vals, index, obj);
             break;
           }catch(KMException e){
             if(KMException.reason() == KMError.INVALID_TAG &&
@@ -436,23 +436,23 @@ public class KMDecoder {
     short type;
     short obj;
     // check whether array contains one type of objects or multiple types
-    if (KMArray.cast(exp).containedType() == 0) {// multiple types specified by expression.
-      if (KMArray.cast(exp).length() != KMArray.ANY_ARRAY_LENGTH) {
-        if (KMArray.cast(exp).length() != payloadLength) {
+    if (KMArray.containedType(exp) == 0) {// multiple types specified by expression.
+      if (KMArray.length(exp) != KMArray.ANY_ARRAY_LENGTH) {
+        if (KMArray.length(exp) != payloadLength) {
           ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
         }
       }
       while (index < payloadLength) {
-        type = KMArray.cast(exp).get(index);
+        type = KMArray.get(exp, index);
         obj = decode(type);
-        KMArray.cast(arrPtr).add(index, obj);
+        KMArray.add(arrPtr, index, obj);
         index++;
       }
     } else { // Array is a Vector containing objects of one type
-      type = KMArray.cast(exp).containedType();
+      type = KMArray.containedType(exp);
       while (index < payloadLength) {
         obj = decode(type);
-        KMArray.cast(arrPtr).add(index, obj);
+        KMArray.add(arrPtr, index, obj);
         index++;
       }
     }
@@ -528,7 +528,6 @@ public class KMDecoder {
   }
 
   private short decodeSimpleValue(short exp) {
-    short inst;
     short startOff = scratchBuf[START_OFFSET];
     byte[] buffer = (byte[]) bufferRef[0];
     if ((buffer[startOff] & MAJOR_TYPE_MASK) != SIMPLE_VALUE_TYPE) {
@@ -599,8 +598,8 @@ public class KMDecoder {
       // Do (-1 - N), as per cbor negative integer decoding rule.
       // N is the integer value.
       scratchpad = KMByteBlob.instance((short) (len * 3));
-      byte[] input = KMByteBlob.cast(scratchpad).getBuffer();
-      short offset = KMByteBlob.cast(scratchpad).getStartOff();
+      byte[] input = KMByteBlob.getBuffer(scratchpad);
+      short offset = KMByteBlob.getStartOff(scratchpad);
       Util.arrayFillNonAtomic(input, offset, len, (byte) -1);
       Util.arrayCopyNonAtomic(buf, startOffset, input, (short) (offset + len), len);
       KMUtils.subtract(input, offset, (short) (offset + len), (short) (offset + 2 * len), (byte) len);

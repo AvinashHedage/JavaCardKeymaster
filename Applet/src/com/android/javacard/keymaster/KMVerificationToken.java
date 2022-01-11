@@ -43,22 +43,20 @@ public class KMVerificationToken extends KMType {
 
   public static short exp1() {
     short arrPtr = KMArray.instance((short) 3);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.exp());
-    arr.add(TIMESTAMP, KMInteger.exp());
-    arr.add(MAC1, KMByteBlob.exp());
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.exp());
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.exp());
+    KMArray.add(arrPtr, MAC1, KMByteBlob.exp());
     return instance(arrPtr);
   }
   
   public static short exp2() {
     short arrPtr = KMArray.instance((short) 5);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.exp());
-    arr.add(TIMESTAMP, KMInteger.exp());
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.exp());
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.exp());
     //arr.add(PARAMETERS_VERIFIED, KMKeyParameters.exp());
-    arr.add(PARAMETERS_VERIFIED, KMByteBlob.exp());
-    arr.add(SECURITY_LEVEL, KMEnum.instance(KMType.HARDWARE_TYPE));
-    arr.add(MAC2, KMByteBlob.exp());
+    KMArray.add(arrPtr, PARAMETERS_VERIFIED, KMByteBlob.exp());
+    KMArray.add(arrPtr, SECURITY_LEVEL, KMEnum.instance(KMType.HARDWARE_TYPE));
+    KMArray.add(arrPtr, MAC2, KMByteBlob.exp());
     return instance(arrPtr);
   }
 
@@ -72,26 +70,23 @@ public class KMVerificationToken extends KMType {
 
   public static short instance1() {
     short arrPtr = KMArray.instance((short) 3);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.uint_16((short) 0));
-    arr.add(TIMESTAMP, KMInteger.uint_16((short) 0));
-    arr.add(MAC1, KMByteBlob.instance((short) 0));
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, MAC1, KMByteBlob.instance((short) 0));
     return instance(arrPtr);
   }
   public static short instance2() {
     short arrPtr = KMArray.instance((short) 5);
-    KMArray arr = KMArray.cast(arrPtr);
-    arr.add(CHALLENGE, KMInteger.uint_16((short) 0));
-    arr.add(TIMESTAMP, KMInteger.uint_16((short) 0));
-    arr.add(PARAMETERS_VERIFIED, KMByteBlob.instance((short) 0));
-    arr.add(SECURITY_LEVEL, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
-    arr.add(MAC2, KMByteBlob.instance((short) 0));
+    KMArray.add(arrPtr, CHALLENGE, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, TIMESTAMP, KMInteger.uint_16((short) 0));
+    KMArray.add(arrPtr, PARAMETERS_VERIFIED, KMByteBlob.instance((short) 0));
+    KMArray.add(arrPtr, SECURITY_LEVEL, KMEnum.instance(KMType.HARDWARE_TYPE, KMType.STRONGBOX));
+    KMArray.add(arrPtr, MAC2, KMByteBlob.instance((short) 0));
     return instance(arrPtr);
   }
   
   public static short instance(short vals) {
-    KMArray arr = KMArray.cast(vals);
-    if (arr.length() != 3 && arr.length() != 5) {
+    if (KMArray.length(vals) != 3 && KMArray.length(vals) != 5) {
       ISOException.throwIt(ISO7816.SW_WRONG_LENGTH);
     }
     short ptr = KMType.instance(VERIFICATION_TOKEN_TYPE, (short) 2);
@@ -116,33 +111,33 @@ public class KMVerificationToken extends KMType {
 
   public short length() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).length();
+    return KMArray.length(arrPtr);
   }
 
   public short getChallenge() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(CHALLENGE);
+    return KMArray.get(arrPtr, CHALLENGE);
   }
 
   public void setChallenge(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(CHALLENGE, vals);
+    KMArray.add(arrPtr, CHALLENGE, vals);
   }
 
   public short getTimestamp() {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(TIMESTAMP);
+    return KMArray.get(arrPtr, TIMESTAMP);
   }
 
   public void setTimestamp(short vals) {
     KMInteger.cast(vals);
     short arrPtr = getVals();
-    KMArray.cast(arrPtr).add(TIMESTAMP, vals);
+    KMArray.add(arrPtr, TIMESTAMP, vals);
   }
 
   public short getMac(short macIndex) {
     short arrPtr = getVals();
-    return KMArray.cast(arrPtr).get(macIndex);
+    return KMArray.get(arrPtr, macIndex);
   }
 }
