@@ -69,7 +69,7 @@ public class KMCosePairIntegerTag extends KMCosePairTagType {
     }
     // Validate the value ptr.
     short valuePtr = Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE + 4));
-    if (INTEGER_TYPE != getType(valuePtr)) {
+    if (INTEGER_TYPE != getKMType(valuePtr)) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     return proto(ptr);

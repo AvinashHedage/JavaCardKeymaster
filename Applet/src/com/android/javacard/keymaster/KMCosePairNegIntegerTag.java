@@ -56,7 +56,7 @@ public class KMCosePairNegIntegerTag extends KMCosePairTagType {
     }
     // Validate the value ptr.
     short valuePtr = Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE + 4));
-    if (NEG_INTEGER_TYPE != getType(valuePtr)) {
+    if (NEG_INTEGER_TYPE != getKMType(valuePtr)) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     return proto(ptr);
@@ -65,7 +65,7 @@ public class KMCosePairNegIntegerTag extends KMCosePairTagType {
   public static short instance(short keyPtr, short valuePtr) {
     short offset = KMCosePairTagType.getKeyStartOffset(keyPtr);
     if (!KMCosePairTagType.isKeyPairValid(heap, offset, KMCose.COSE_KEY_MAX_SIZE,
-        KMNInteger.cast(valuePtr).getShort())) {
+        KMNInteger.getShort(valuePtr))) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     short ptr = KMType.instance(COSE_PAIR_TAG_TYPE, (short) 6);

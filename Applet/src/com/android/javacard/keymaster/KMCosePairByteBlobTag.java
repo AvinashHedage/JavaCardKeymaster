@@ -54,7 +54,7 @@ public class KMCosePairByteBlobTag extends KMCosePairTagType {
     if (!isKeyValueValid(keyPtr)) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
-    if (KMType.getType(valuePtr) != BYTE_BLOB_TYPE) {
+    if (KMType.getKMType(valuePtr) != BYTE_BLOB_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     short ptr = KMType.instance(COSE_PAIR_TAG_TYPE, (short) 6);
@@ -71,7 +71,7 @@ public class KMCosePairByteBlobTag extends KMCosePairTagType {
     }
     // Validate the value pointer.
     short valuePtr = Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE + 4));
-    if (KMType.getType(valuePtr) != BYTE_BLOB_TYPE) {
+    if (KMType.getKMType(valuePtr) != BYTE_BLOB_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     return proto(ptr);
@@ -108,7 +108,7 @@ public class KMCosePairByteBlobTag extends KMCosePairTagType {
 
   public static boolean isKeyValueValid(short keyPtr) {
     createKeys();
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     short offset = 0;
     if (type == INTEGER_TYPE) {
       offset = KMInteger.getStartOff(keyPtr);

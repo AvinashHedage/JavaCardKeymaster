@@ -88,7 +88,7 @@ public class KMDecoder {
   }
 
   private short decode(short exp) {
-    byte type = KMType.getType(exp);
+    byte type = KMType.getKMType(exp);
     switch (type) {
       case KMType.BYTE_BLOB_TYPE:
         return decodeByteBlob(exp);
@@ -124,7 +124,7 @@ public class KMDecoder {
         short tagValueType = KMCosePairTagType.getTagValueType(exp);
         return decodeCosePairTag(tagValueType, exp);
       case KMType.TAG_TYPE:
-        short tagType = KMTag.getTagType(exp);
+        short tagType = KMTag.getKMTagType(exp);
         return decodeTag(tagType, exp);
       default:
         ISOException.throwIt(ISO7816.SW_DATA_INVALID);
@@ -173,7 +173,7 @@ public class KMDecoder {
   }
 
   private short decodeKeyChar(short exp) {
-    short vals = decode(KMKeyCharacteristics.cast(exp).getVals());
+    short vals = decode(KMKeyCharacteristics.getVals(exp));
     return KMKeyCharacteristics.instance(vals);
   }
 
@@ -333,7 +333,7 @@ public class KMDecoder {
   private short decodeKeyParam(short exp) {
     short payloadLength = readMajorTypeWithPayloadLength(MAP_TYPE);
     // allowed tags
-    short allowedTags = KMKeyParameters.cast(exp).getVals();
+    short allowedTags = KMKeyParameters.getVals(exp);
     short tagRule = KMArray.get(allowedTags, (short)0);
     boolean ignoreInvalidTags = KMEnum.getVal(tagRule) == KMType.IGNORE_INVALID_TAGS;
     short vals = KMArray.instance(payloadLength);
@@ -353,7 +353,7 @@ public class KMDecoder {
       // Check against the allowed tags ...
       while (tagInd < length) {
         tagClass = KMArray.get(allowedTags, tagInd);
-        allowedType = KMTag.getTagType(tagClass);
+        allowedType = KMTag.getKMTagType(tagClass);
         // If it is part of allowed tags ...
         if (tagType == allowedType) {
           // then decodeByteBlob and add that to the array.
@@ -381,34 +381,34 @@ public class KMDecoder {
   }
 
   private short decodeEnumArrayTag(short exp) {
-    readTagKey(KMEnumArrayTag.cast(exp).getTagType());
-    return KMEnumArrayTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMEnumArrayTag.cast(exp).getValues()));
+    readTagKey(KMEnumArrayTag.getTagType(exp));
+    return KMEnumArrayTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMEnumArrayTag.getValues(exp)));
   }
 
   private short decodeIntegerArrayTag(short exp) {
-    readTagKey(KMIntegerArrayTag.cast(exp).getTagType());
+    readTagKey(KMIntegerArrayTag.getTagType(exp));
     // the values are array of integers.
-    return KMIntegerArrayTag.instance(KMIntegerArrayTag.cast(exp).getTagType(),
-        scratchBuf[TAG_KEY_OFFSET], decode(KMIntegerArrayTag.cast(exp).getValues()));
+    return KMIntegerArrayTag.instance(KMIntegerArrayTag.getTagType(exp),
+        scratchBuf[TAG_KEY_OFFSET], decode(KMIntegerArrayTag.getValues(exp)));
   }
 
   private short decodeIntegerTag(short exp) {
-    readTagKey(KMIntegerTag.cast(exp).getTagType());
+    readTagKey(KMIntegerTag.getTagType(exp));
     // the value is an integer
-    return KMIntegerTag.instance(KMIntegerTag.cast(exp).getTagType(),
-        scratchBuf[TAG_KEY_OFFSET], decode(KMIntegerTag.cast(exp).getValue()));
+    return KMIntegerTag.instance(KMIntegerTag.getTagType(exp),
+        scratchBuf[TAG_KEY_OFFSET], decode(KMIntegerTag.getValue(exp)));
   }
 
   private short decodeBytesTag(short exp) {
-    readTagKey(KMByteTag.cast(exp).getTagType());
+    readTagKey(KMByteTag.getTagType(exp));
     // The value must be byte blob
-    return KMByteTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMByteTag.cast(exp).getValue()));
+    return KMByteTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMByteTag.getValue(exp)));
   }
 
   private short decodeBignumTag(short exp) {
-    readTagKey(KMBignumTag.cast(exp).getTagType());
+    readTagKey(KMBignumTag.getTagType(exp));
     // The value must be byte blob
-    return KMBignumTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMBignumTag.cast(exp).getValue()));
+    return KMBignumTag.instance(scratchBuf[TAG_KEY_OFFSET], decode(KMBignumTag.getValue(exp)));
   }
 
   private short decodeMap(short exp) {
@@ -419,11 +419,11 @@ public class KMDecoder {
     short keyobj;
     short valueobj;
     while (index < payloadLength) {
-      type = KMMap.cast(exp).getKey(index);
+      type = KMMap.getKey(exp, index);
       keyobj = decode(type);
-      type = KMMap.cast(exp).getKeyValue(index);
+      type = KMMap.getKeyValue(exp, index);
       valueobj = decode(type);
-      KMMap.cast(mapPtr).add(index, keyobj, valueobj);
+      KMMap.add(mapPtr, index, keyobj, valueobj);
       index++;
     }
     return mapPtr;
@@ -460,7 +460,7 @@ public class KMDecoder {
   }
 
   private short decodeEnumTag(short exp) {
-    readTagKey(KMEnumTag.cast(exp).getTagType());
+    readTagKey(KMEnumTag.getTagType(exp));
     byte[] buffer = (byte[]) bufferRef[0];
     short startOff = scratchBuf[START_OFFSET];
     // Enum Tag value will always be integer with max 1 byte length.
@@ -487,7 +487,7 @@ public class KMDecoder {
   }
 
   private short decodeBoolTag(short exp) {
-    readTagKey(KMBoolTag.cast(exp).getTagType());
+    readTagKey(KMBoolTag.getTagType(exp));
     byte[] buffer = (byte[]) bufferRef[0];
     short startOff = scratchBuf[START_OFFSET];
     // BOOL Tag is a leaf node and it must always have tiny encoded uint value = 1.

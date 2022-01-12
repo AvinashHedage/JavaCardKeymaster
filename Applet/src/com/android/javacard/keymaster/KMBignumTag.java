@@ -77,7 +77,7 @@ public class KMBignumTag extends KMTag {
     return ptr;
   }
 
-  public static KMBignumTag cast(short ptr) {
+  private static KMBignumTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -104,6 +104,22 @@ public class KMBignumTag extends KMTag {
     return KMByteBlob.length(blobPtr);
   }
 
+  public static short getKey(short bPtr) {
+	return KMBignumTag.cast(bPtr).getKey();
+  }
+
+  public static short getTagType(short bPtr) {
+	return KMBignumTag.cast(bPtr).getTagType();
+  }
+
+  public static short getValue(short bPtr) {
+	return KMBignumTag.cast(bPtr).getValue();
+  }
+
+  public static short length(short bPtr) {
+    return KMBignumTag.cast(bPtr).length();
+  }
+  
   private static boolean validateKey(short key) {
     short index = (short) tags.length;
     while (--index >= 0) {

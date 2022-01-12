@@ -145,7 +145,7 @@ public class KMEncoder {
   private void encode() {
     while (scratchBuf[STACK_PTR_OFFSET] > 0) {
       short exp = pop();
-      byte type = KMType.getType(exp);
+      byte type = KMType.getKMType(exp);
       switch (type) {
         case KMType.BYTE_BLOB_TYPE:
           encodeByteBlob(exp);
@@ -192,7 +192,7 @@ public class KMEncoder {
           encodeHwAuthToken(exp);
           break;
         case KMType.TAG_TYPE:
-          short tagType = KMTag.getTagType(exp);
+          short tagType = KMTag.getKMTagType(exp);
           encodeTag(tagType, exp);
           break;
         case KMType.COSE_PAIR_TAG_TYPE:
@@ -305,7 +305,7 @@ public class KMEncoder {
   }
 
   private void encodeKeyParam(short obj) {
-    encodeAsMap(KMKeyParameters.cast(obj).getVals());
+    encodeAsMap(KMKeyParameters.getVals(obj));
   }
 
   private void encodeKeyChar(short obj) {
@@ -345,12 +345,12 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeMap(short obj) {
-    writeMajorTypeWithLength(MAP_TYPE, KMMap.cast(obj).length());
-    short len = KMMap.cast(obj).length();
+    writeMajorTypeWithLength(MAP_TYPE, KMMap.length(obj));
+    short len = KMMap.length(obj);
     short index = (short) (len - 1);
     while (index >= 0) {
-      encode(KMMap.cast(obj).getKeyValue(index));
-      encode(KMMap.cast(obj).getKey(index));
+      encode(KMMap.getKeyValue(obj, index));
+      encode(KMMap.getKey(obj, index));
       index--;
     }
   }
@@ -368,33 +368,33 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeIntegerArrayTag(short obj) {
-    writeTag(KMIntegerArrayTag.cast(obj).getTagType(), KMIntegerArrayTag.cast(obj).getKey());
-    encode(KMIntegerArrayTag.cast(obj).getValues());
+    writeTag(KMIntegerArrayTag.getTagType(obj), KMIntegerArrayTag.getKey(obj));
+    encode(KMIntegerArrayTag.getValues(obj));
   }
 
   private void encodeEnumArrayTag(short obj) {
-    writeTag(KMEnumArrayTag.cast(obj).getTagType(), KMEnumArrayTag.cast(obj).getKey());
-    encode(KMEnumArrayTag.cast(obj).getValues());
+    writeTag(KMEnumArrayTag.getTagType(obj), KMEnumArrayTag.getKey(obj));
+    encode(KMEnumArrayTag.getValues(obj));
   }
 
   private void encodeIntegerTag(short obj) {
-    writeTag(KMIntegerTag.cast(obj).getTagType(), KMIntegerTag.cast(obj).getKey());
-    encode(KMIntegerTag.cast(obj).getValue());
+    writeTag(KMIntegerTag.getTagType(obj), KMIntegerTag.getKey(obj));
+    encode(KMIntegerTag.getValue(obj));
   }
 
   private void encodeBytesTag(short obj) {
-    writeTag(KMByteTag.cast(obj).getTagType(), KMByteTag.cast(obj).getKey());
-    encode(KMByteTag.cast(obj).getValue());
+    writeTag(KMByteTag.getTagType(obj), KMByteTag.getKey(obj));
+    encode(KMByteTag.getValue(obj));
   }
 
   private void encodeBoolTag(short obj) {
-    writeTag(KMBoolTag.cast(obj).getTagType(), KMBoolTag.cast(obj).getKey());
-    writeByteValue(KMBoolTag.cast(obj).getVal());
+    writeTag(KMBoolTag.getTagType(obj), KMBoolTag.getKey(obj));
+    writeByteValue(KMBoolTag.getVal(obj));
   }
 
   private void encodeEnumTag(short obj) {
-    writeTag(KMEnumTag.cast(obj).getTagType(), KMEnumTag.cast(obj).getKey());
-    writeByteValue(KMEnumTag.cast(obj).getValue());
+    writeTag(KMEnumTag.getTagType(obj), KMEnumTag.getKey(obj));
+    writeByteValue(KMEnumTag.getValue(obj));
   }
 
   private void encodeEnum(short obj) {
@@ -504,14 +504,14 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private void encodeSimpleValue(short obj) {
-    byte value = KMSimpleValue.cast(obj).getValue();
+    byte value = KMSimpleValue.getValue(obj);
     writeByte((byte) (SIMPLE_VALUE_TYPE | value));
   }
 
   private void encodeTextString(short obj) {
-    writeMajorTypeWithLength(TSTR_TYPE, KMTextString.cast(obj).length());
-    writeBytes(KMTextString.cast(obj).getBuffer(), KMTextString.cast(obj).getStartOff(),
-        KMTextString.cast(obj).length());
+    writeMajorTypeWithLength(TSTR_TYPE, KMTextString.length(obj));
+    writeBytes(KMTextString.getBuffer(obj), KMTextString.getStartOff(obj),
+        KMTextString.length(obj));
   }
 
   public short encodeByteBlobHeader(short bufLen, byte[] buffer, short startOff, short length) {
@@ -530,7 +530,7 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
 
   public short getEncodedLength(short ptr) {
     short len = 0;
-    short type = KMType.getType(ptr);
+    short type = KMType.getKMType(ptr);
     switch (type) {
       case KMType.BYTE_BLOB_TYPE:
         len += getEncodedByteBlobLength(ptr);
@@ -605,12 +605,12 @@ public void encodeArrayOnlyLength(short arrLength, byte[] buffer, short offset, 
   }
 
   private short getEncodedMapLen(short obj) {
-    short mapLen = KMMap.cast(obj).length();
+    short mapLen = KMMap.length(obj);
     short len = getEncodedBytesLength(mapLen);
     short index = 0;
     while (index < mapLen) {
-      len += getEncodedLength(KMMap.cast(obj).getKey(index));
-      len += getEncodedLength(KMMap.cast(obj).getKeyValue(index));
+      len += getEncodedLength(KMMap.getKey(obj, index));
+      len += getEncodedLength(KMMap.getKeyValue(obj, index));
       index++;
     }
     return len;

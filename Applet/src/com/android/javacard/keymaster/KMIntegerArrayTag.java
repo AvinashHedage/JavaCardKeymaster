@@ -82,7 +82,7 @@ public class KMIntegerArrayTag extends KMTag {
     return ptr;
   }
 
-  public static KMIntegerArrayTag cast(short ptr) {
+  private static KMIntegerArrayTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -134,7 +134,7 @@ public class KMIntegerArrayTag extends KMTag {
 
   public static boolean contains(short tagId, short tagValue, short params) {
     short tag =
-        KMKeyParameters.findTag(KMType.UINT_ARRAY_TAG, tagId, params);
+        KMKeyParameters.findTag(params, KMType.UINT_ARRAY_TAG, tagId);
     if (tag != KMType.INVALID_VALUE) {
       short index = 0;
       tag = KMIntegerArrayTag.cast(tag).getValues();
@@ -158,4 +158,30 @@ public class KMIntegerArrayTag extends KMTag {
     }
     return false;
   }
+  
+  public static boolean contains(short bPtr, short tagValue) {
+	return KMIntegerArrayTag.cast(bPtr).contains(tagValue);
+  }
+  
+  public static short getValues(short bPtr) {
+    return KMIntegerArrayTag.cast(bPtr).getValues();
+  }
+  
+  public static short get(short bPtr, short index) {
+	return KMIntegerArrayTag.cast(bPtr).get(index);
+  }
+  
+  public static short getTagType(short bPtr) {
+	return KMIntegerArrayTag.cast(bPtr).getTagType();
+  }
+  
+  public static short getKey(short bPtr) {
+	return KMIntegerArrayTag.cast(bPtr).getKey();
+  }
+  
+  public static short length(short bPtr) {
+	return KMIntegerArrayTag.cast(bPtr).length();
+  }
+  
+  
 }

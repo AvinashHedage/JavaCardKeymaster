@@ -108,7 +108,7 @@ public class KMIntegerTag extends KMTag {
     return ptr;
   }
 
-  public static KMIntegerTag cast(short ptr) {
+  private static KMIntegerTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -152,7 +152,7 @@ public class KMIntegerTag extends KMTag {
   public static short getShortValue(short tagType, short tagKey, short keyParameters) {
     short ptr;
     if (tagType == UINT_TAG) {
-      ptr = KMKeyParameters.findTag(KMType.UINT_TAG, tagKey, keyParameters);
+      ptr = KMKeyParameters.findTag(keyParameters, KMType.UINT_TAG, tagKey);
       if (ptr != KMType.INVALID_VALUE) {
         ptr = KMIntegerTag.cast(ptr).getValue();
         if (KMInteger.getSignificantShort(ptr) == 0) {
@@ -167,7 +167,7 @@ public class KMIntegerTag extends KMTag {
       byte[] buf, short offset, short tagType, short tagKey, short keyParameters) {
     short ptr;
     if ((tagType == UINT_TAG) || (tagType == ULONG_TAG) || (tagType == DATE_TAG)) {
-      ptr = KMKeyParameters.findTag(tagType, tagKey, keyParameters);
+      ptr = KMKeyParameters.findTag(keyParameters, tagType, tagKey);
       if (ptr != KMType.INVALID_VALUE) {
         ptr = KMIntegerTag.cast(ptr).getValue();
         return KMInteger.value(ptr, buf, offset);
@@ -212,5 +212,21 @@ public class KMIntegerTag extends KMTag {
         break;
     }
     return false;
+  }
+  
+  public static boolean isValidKeySize(short bPtr, byte alg) {
+	return KMIntegerTag.cast(bPtr).isValidKeySize(alg);
+  }
+  
+  public static short getTagType(short bPtr) {
+    return KMIntegerTag.cast(bPtr).getTagType();
+  }
+  
+  public static short getValue(short bPtr) {
+	return KMIntegerTag.cast(bPtr).getValue();
+  }
+  
+  public static short getKey(short bPtr) {
+    return KMIntegerTag.cast(bPtr).getKey();
   }
 }

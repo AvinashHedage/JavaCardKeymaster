@@ -412,7 +412,7 @@ public class KMCose {
    * @return instance of KMCosePair*Value object.
    */
   public short buildCosePairTag(byte key, short valuePtr) {
-    short type = KMType.getType(valuePtr);
+    short type = KMType.getKMType(valuePtr);
     short keyPtr;
     if (key < 0) {
       keyPtr = KMNInteger.uint_8(key);

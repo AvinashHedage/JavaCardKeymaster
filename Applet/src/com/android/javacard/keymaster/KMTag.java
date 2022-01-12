@@ -29,11 +29,11 @@ import javacard.framework.Util;
  * of KMType.
  */
 public class KMTag extends KMType {
-  public static short getTagType(short ptr) {
+  public static short getKMTagType(short ptr) {
     return Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE));
   }
 
-  public static short getKey(short ptr) {
+  public static short getKMTagKey(short ptr) {
     return Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE + 2));
   }
 
@@ -49,7 +49,7 @@ public class KMTag extends KMType {
   }
 
   public static boolean isPresent(short params, short tagType, short tagKey){
-    short tag = KMKeyParameters.findTag(tagType, tagKey, params);
+    short tag = KMKeyParameters.findTag(params, tagType, tagKey);
     return tag != KMType.INVALID_VALUE;
   }
 
@@ -76,11 +76,11 @@ public class KMTag extends KMType {
   }
 
   public static boolean isValidPublicExponent(short params) {
-    short pubExp = KMKeyParameters.findTag(KMType.ULONG_TAG, KMType.RSA_PUBLIC_EXPONENT, params);
+    short pubExp = KMKeyParameters.findTag(params, KMType.ULONG_TAG, KMType.RSA_PUBLIC_EXPONENT);
     if(pubExp == KMType.INVALID_VALUE){
       return false;
     }
-    pubExp = KMIntegerTag.cast(pubExp).getValue();
+    pubExp = KMIntegerTag.getValue(pubExp);
     if(!(KMInteger.getShort(pubExp) == 0x01 &&
         KMInteger.getSignificantShort(pubExp) == 0x01)){
       return false;
@@ -89,11 +89,11 @@ public class KMTag extends KMType {
   }
 
   public static boolean isValidKeySize(short params){
-    short keysize = KMKeyParameters.findTag(KMType.UINT_TAG, KMType.KEYSIZE, params);
+    short keysize = KMKeyParameters.findTag(params, KMType.UINT_TAG, KMType.KEYSIZE);
     if(keysize == KMType.INVALID_VALUE){
       return false;
     }
     short alg = KMEnumTag.getValue(KMType.ALGORITHM, params);
-    return KMIntegerTag.cast(keysize).isValidKeySize((byte)alg);
+    return KMIntegerTag.isValidKeySize(keysize, (byte)alg);
   }
 }

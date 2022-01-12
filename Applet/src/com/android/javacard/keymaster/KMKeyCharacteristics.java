@@ -86,7 +86,7 @@ public class KMKeyCharacteristics extends KMType {
     return ptr;
   }
 
-  public static KMKeyCharacteristics cast(short ptr) {
+  private static KMKeyCharacteristics cast(short ptr) {
     if (heap[ptr] != KEY_CHAR_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -125,19 +125,19 @@ public class KMKeyCharacteristics extends KMType {
   }
 
   public void setKeystoreEnforced(short ptr) {
-    KMKeyParameters.cast(ptr);
+    KMKeyParameters.validate(ptr);
     short arrPtr = getVals();
     KMArray.add(arrPtr, KEYSTORE_ENFORCED, ptr);
   }
 
   public void setTeeEnforced(short ptr) {
-    KMKeyParameters.cast(ptr);
+    KMKeyParameters.validate(ptr);
     short arrPtr = getVals();
     KMArray.add(arrPtr, TEE_ENFORCED, ptr);
   }
 
   public void setStrongboxEnforced(short ptr) {
-    KMKeyParameters.cast(ptr);
+    KMKeyParameters.validate(ptr);
     short arrPtr = getVals();
     KMArray.add(arrPtr, STRONGBOX_ENFORCED, ptr);
   }

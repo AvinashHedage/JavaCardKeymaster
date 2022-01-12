@@ -324,7 +324,7 @@ public class KMAttestationCertImpl implements KMAttestationCert {
       swParams[swParamsIndex] = tag;
       swParamsIndex++;
     }
-    if (KMTag.getKey(tag) == KMType.PURPOSE) {
+    if (KMTag.getKMTagKey(tag) == KMType.PURPOSE) {
       createKeyUsage(tag);
     }
     return this;
@@ -337,18 +337,18 @@ public class KMAttestationCertImpl implements KMAttestationCert {
   }
 
   private void createKeyUsage(short tag) {
-    short len = KMEnumArrayTag.cast(tag).length();
+    short len = KMEnumArrayTag.length(tag);
     byte index = 0;
     while (index < len) {
-      if (KMEnumArrayTag.cast(tag).get(index) == KMType.SIGN) {
+      if (KMEnumArrayTag.get(tag, index) == KMType.SIGN) {
         keyUsage = (byte) (keyUsage | keyUsageSign);
-      } else if (KMEnumArrayTag.cast(tag).get(index) == KMType.WRAP_KEY) {
+      } else if (KMEnumArrayTag.get(tag, index) == KMType.WRAP_KEY) {
         keyUsage = (byte) (keyUsage | keyUsageKeyEncipher);
-      } else if (KMEnumArrayTag.cast(tag).get(index) == KMType.DECRYPT) {
+      } else if (KMEnumArrayTag.get(tag, index) == KMType.DECRYPT) {
         keyUsage = (byte) (keyUsage | keyUsageDataEncipher);
-      } else if (KMEnumArrayTag.cast(tag).get(index) == KMType.AGREE_KEY){
+      } else if (KMEnumArrayTag.get(tag, index)== KMType.AGREE_KEY){
         keyUsage = (byte) (keyUsage | keyUsageKeyAgreement);
-      }else if (KMEnumArrayTag.cast(tag).get(index) == KMType.ATTEST_KEY){
+      }else if (KMEnumArrayTag.get(tag, index)== KMType.ATTEST_KEY){
         keyUsage = (byte) (keyUsage | keyUsageCertSign);
       }
       index++;
@@ -562,7 +562,7 @@ public class KMAttestationCertImpl implements KMAttestationCert {
   private boolean pushParams(short[] params, short len, short tagId) {
     short index = 0;
     while (index < len) {
-      if (tagId == KMTag.getKey(params[index])) {
+      if (tagId == KMTag.getKMTagKey(params[index])) {
         pushTag(params[index]);
         return true;
       }
@@ -572,12 +572,12 @@ public class KMAttestationCertImpl implements KMAttestationCert {
   }
 
   private void pushTag(short tag) {
-    short type = KMTag.getTagType(tag);
-    short tagId = KMTag.getKey(tag);
+    short type = KMTag.getKMTagType(tag);
+    short tagId = KMTag.getKMTagKey(tag);
     short val;
     switch (type) {
       case KMType.BYTES_TAG:
-        val = KMByteTag.cast(tag).getValue();
+        val = KMByteTag.getValue(tag);
         pushBytesTag(
             tagId,
             KMByteBlob.getBuffer(val),
@@ -585,11 +585,11 @@ public class KMAttestationCertImpl implements KMAttestationCert {
             KMByteBlob.length(val));
         break;
       case KMType.ENUM_TAG:
-        val = KMEnumTag.cast(tag).getValue();
+        val = KMEnumTag.getValue(tag);
         pushEnumTag(tagId, (byte) val);
         break;
       case KMType.ENUM_ARRAY_TAG:
-        val = KMEnumArrayTag.cast(tag).getValues();
+        val = KMEnumArrayTag.getValues(tag);
         pushEnumArrayTag(
             tagId,
             KMByteBlob.getBuffer(val),
@@ -599,7 +599,7 @@ public class KMAttestationCertImpl implements KMAttestationCert {
       case KMType.UINT_TAG:
       case KMType.ULONG_TAG:
       case KMType.DATE_TAG:
-        val = KMIntegerTag.cast(tag).getValue();
+        val = KMIntegerTag.getValue(tag);
         pushIntegerTag(
             tagId,
             KMInteger.getBuffer(val),
@@ -610,11 +610,11 @@ public class KMAttestationCertImpl implements KMAttestationCert {
       case KMType.ULONG_ARRAY_TAG:
         // According to keymaster hal only one user secure id is used but this conflicts with
         //  tag type which is ULONG-REP. Currently this is encoded as SET OF INTEGERS
-        val = KMIntegerArrayTag.cast(tag).getValues();
+        val = KMIntegerArrayTag.getValues(tag);
         pushIntegerArrayTag(tagId, val);
         break;
       case KMType.BOOL_TAG:
-        val = KMBoolTag.cast(tag).getVal();
+        val = KMBoolTag.getVal(tag);
         pushBoolTag(tagId);
         break;
       default:

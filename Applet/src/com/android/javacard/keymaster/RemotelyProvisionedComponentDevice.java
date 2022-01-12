@@ -248,7 +248,7 @@ public class RemotelyProvisionedComponentDevice {
     byte[] scratchPad = apdu.getBuffer();
     // test mode flag.
     boolean testMode =
-        (KMSimpleValue.TRUE == KMSimpleValue.cast(KMArray.get(arr, (short) 0)).getValue());
+        (KMSimpleValue.TRUE == KMSimpleValue.getValue(KMArray.get(arr, (short) 0)));
     KMAppletInst.generateRkpKey(scratchPad, getEcAttestKeyParameters());
     short pubKey = KMKeymasterApplet.getPubKey();
     short coseMac0 = constructCoseMacForRkpKey(testMode, scratchPad, pubKey);
@@ -286,7 +286,7 @@ public class RemotelyProvisionedComponentDevice {
       // Store the test mode value in data table.
       dataEntryIndex = createEntry(TEST_MODE, TEST_MODE_SIZE);
       data[dataEntryIndex] =
-          (KMSimpleValue.TRUE == KMSimpleValue.cast(KMArray.get(arr, (short) 2)).getValue()) ?
+          (KMSimpleValue.TRUE == KMSimpleValue.getValue(KMArray.get(arr, (short) 2))) ?
               TRUE : FALSE;
       // Store the current csr status, which is BEGIN.
       createEntry(GENERATE_CSR_PHASE, BYTE_SIZE);
@@ -907,11 +907,11 @@ public class RemotelyProvisionedComponentDevice {
     short index = 0;
     while (index < (short) deviceIds.length) {
       if (deviceIds[index] != KMType.INVALID_VALUE) {
-        KMMap.cast(map).add(mapIndex++, deviceIds[index], deviceIds[(short) (index + 1)]);
+        KMMap.add(map, mapIndex++, deviceIds[index], deviceIds[(short) (index + 1)]);
       }
       index += 2;
     }
-    KMMap.cast(map).canonicalize();
+    KMMap.canonicalize(map);
     return map;
   }
 

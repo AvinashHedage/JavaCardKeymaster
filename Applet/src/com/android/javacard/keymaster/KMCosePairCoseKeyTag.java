@@ -39,7 +39,7 @@ public class KMCosePairCoseKeyTag extends KMCosePairTagType {
     if (!isKeyValueValid(KMCosePairTagType.getKeyValueShort(keyPtr))) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
-    if (KMType.getType(valuePtr) != COSE_KEY_TYPE) {
+    if (KMType.getKMType(valuePtr) != COSE_KEY_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     short ptr = KMType.instance(COSE_PAIR_TAG_TYPE, (short) 6);
@@ -56,7 +56,7 @@ public class KMCosePairCoseKeyTag extends KMCosePairTagType {
     }
     // Validate the value pointer.
     short valuePtr = Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE + 4));
-    if (KMType.getType(valuePtr) != COSE_KEY_TYPE) {
+    if (KMType.getKMType(valuePtr) != COSE_KEY_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     return proto(ptr);

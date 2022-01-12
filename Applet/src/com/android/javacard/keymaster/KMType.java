@@ -370,15 +370,15 @@ public abstract class KMType {
     KMType.heap = repository.getHeap();
   }
 
-  public static byte getType(short ptr) {
+  public static byte getKMType(short ptr) {
     return heap[ptr];
   }
 
-  public static short length(short ptr) {
+  public static short getKMTypeLength(short ptr) {
     return Util.getShort(heap, (short) (ptr + 1));
   }
 
-  public static short getValue(short ptr) {
+  public static short getKMTypeValue(short ptr) {
     return Util.getShort(heap, (short) (ptr + TLV_HEADER_SIZE));
   }
 

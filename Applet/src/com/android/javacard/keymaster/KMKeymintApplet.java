@@ -9,8 +9,8 @@ import javacard.framework.Util;
 
 public class KMKeymintApplet extends KMKeymasterApplet {
 
-  KMKeymintApplet(KMSEProvider seImpl) {
-    super(seImpl);
+  KMKeymintApplet(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
+    super(seImpl, repoInst, decoderInst);
   }
   
   public static final byte[] JAVACARD_KEYMINT_DEVICE = {
@@ -99,8 +99,8 @@ public class KMKeymintApplet extends KMKeymasterApplet {
       arrayLen = 3;
     }
     short params = KMArray.instance((short) arrayLen);
-    KMArray.add(params, (short) 0, KMKeyParameters.cast(hwParams).getVals());
-    KMArray.add(params, (short) 1, KMKeyParameters.cast(hiddenParams).getVals());
+    KMArray.add(params, (short) 0, KMKeyParameters.getVals(hwParams));
+    KMArray.add(params, (short) 1, KMKeyParameters.getVals(hiddenParams));
     if (3 == arrayLen) {
       KMArray.add(params, (short) 2, pubKey);
     }
@@ -115,23 +115,21 @@ public class KMKeymintApplet extends KMKeymasterApplet {
   @Override
   public KMAttestationCert makeCommonCert(short swParams, short hwParams, short keyParams,
       byte[] scratchPad, KMSEProvider seProvider) {
-    short alg = KMKeyParameters.findTag(KMType.ENUM_TAG, KMType.ALGORITHM, keyParams);
-    boolean rsaCert = KMEnumTag.cast(alg).getValue() == KMType.RSA;
+    short alg = KMKeyParameters.findTag(keyParams, KMType.ENUM_TAG, KMType.ALGORITHM);
+    boolean rsaCert = KMEnumTag.getValue(alg) == KMType.RSA;
     KMAttestationCert cert = KMAttestationCertImpl.instance(rsaCert, seProvider);
 
     // Validity period must be specified
-    short notBefore = KMKeyParameters.findTag(KMType.DATE_TAG, KMType.CERTIFICATE_NOT_BEFORE,
-        keyParams);
+    short notBefore = KMKeyParameters.findTag(keyParams, KMType.DATE_TAG, KMType.CERTIFICATE_NOT_BEFORE);
     if (notBefore == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.MISSING_NOT_BEFORE);
     }
-    notBefore = KMIntegerTag.cast(notBefore).getValue();
-    short notAfter = KMKeyParameters.findTag(KMType.DATE_TAG, KMType.CERTIFICATE_NOT_AFTER,
-        keyParams);
+    notBefore = KMIntegerTag.getValue(notBefore);
+    short notAfter = KMKeyParameters.findTag(keyParams, KMType.DATE_TAG, KMType.CERTIFICATE_NOT_AFTER);
     if (notAfter == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.MISSING_NOT_AFTER);
     }
-    notAfter = KMIntegerTag.cast(notAfter).getValue();
+    notAfter = KMIntegerTag.getValue(notAfter);
     // VTS sends notBefore == Epoch.
     Util.arrayFillNonAtomic(scratchPad, (short) 0, (short) 8, (byte) 0);
     short epoch = KMInteger.instance(scratchPad, (short) 0, (short) 8);
@@ -153,7 +151,7 @@ public class KMKeymintApplet extends KMKeymasterApplet {
     short serialNum =
         KMKeyParameters.findTag(KMType.BIGNUM_TAG, KMType.CERTIFICATE_SERIAL_NUM, keyParams);
     if (serialNum != KMType.INVALID_VALUE) {
-      serialNum = KMBignumTag.cast(serialNum).getValue();
+      serialNum = KMBignumTag.getValue(serialNum);
     } else {
       serialNum = KMByteBlob.instance((short) 1);
       KMByteBlob.add(serialNum, (short) 0, (byte) 1);
@@ -164,13 +162,13 @@ public class KMKeymintApplet extends KMKeymasterApplet {
 
   @Override
   public short getMgf1Digest(short keyParams, short hwParams) {
-    short mgfDigest = KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG,
-        KMType.RSA_OAEP_MGF_DIGEST, keyParams);
+    short mgfDigest = KMKeyParameters.findTag(keyParams, KMType.ENUM_ARRAY_TAG,
+        KMType.RSA_OAEP_MGF_DIGEST);
     if (mgfDigest != KMType.INVALID_VALUE) {
-      if (KMEnumArrayTag.cast(mgfDigest).length() != 1) {
+      if (KMEnumArrayTag.length(mgfDigest) != 1) {
         KMException.throwIt(KMError.INVALID_ARGUMENT);
       }
-      mgfDigest = KMEnumArrayTag.cast(mgfDigest).get((short) 0);
+      mgfDigest = KMEnumArrayTag.get(mgfDigest, (short) 0);
       if (mgfDigest == KMType.DIGEST_NONE) {
         KMException.throwIt(KMError.UNSUPPORTED_MGF_DIGEST);
       }

@@ -94,7 +94,7 @@ public class KMVerificationToken extends KMType {
     return ptr;
   }
 
-  public static KMVerificationToken cast(short ptr) {
+  private static KMVerificationToken cast(short ptr) {
     if (heap[ptr] != VERIFICATION_TOKEN_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -120,7 +120,7 @@ public class KMVerificationToken extends KMType {
   }
 
   public void setChallenge(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, CHALLENGE, vals);
   }
@@ -131,7 +131,7 @@ public class KMVerificationToken extends KMType {
   }
 
   public void setTimestamp(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, TIMESTAMP, vals);
   }

@@ -74,7 +74,12 @@ public class KMInteger extends KMType {
     }
   }
 
-  public static KMInteger cast(short ptr) {
+  private static KMInteger cast(short ptr) {
+    validate(ptr);
+    return proto(ptr);
+  }
+
+  public static void validate(short ptr) {
     byte[] heap = repository.getHeap();
     if (heap[ptr] != INTEGER_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
@@ -82,9 +87,8 @@ public class KMInteger extends KMType {
     if (Util.getShort(heap, (short) (ptr + 1)) == INVALID_VALUE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
-    return proto(ptr);
   }
-
+  
   // create integer and copy byte value
   public static short uint_8(byte num) {
     short ptr = instance(UINT_32);

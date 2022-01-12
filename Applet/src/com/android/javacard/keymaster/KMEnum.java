@@ -64,14 +64,18 @@ public class KMEnum extends KMType {
     return Util.getShort(heap, (short) (KMType.instanceTable[KM_ENUM_OFFSET] + 1));
   }
 
-  public static KMEnum cast(short ptr) {
+  private static KMEnum cast(short ptr) {
+    validate(ptr);
+    return proto(ptr);
+  }
+  
+  public static void validate(short ptr) {
     if (heap[ptr] != ENUM_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     if (Util.getShort(heap, (short) (ptr + 1)) == INVALID_VALUE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
-    return proto(ptr);
   }
 
   public static short instance(short enumType) {

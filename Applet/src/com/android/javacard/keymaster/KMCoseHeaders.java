@@ -165,7 +165,7 @@ public class KMCoseHeaders extends KMCoseMap {
       if (value != KMType.INVALID_VALUE) {
         valid = false;
         ptr = getValueType(headerTags[tagIndex]);
-        switch (KMType.getType(ptr)) {
+        switch (KMType.getKMType(ptr)) {
           case KMType.BYTE_BLOB_TYPE:
             if ((KMByteBlob.length(value) == KMByteBlob.length(ptr)) &&
                 (0 ==

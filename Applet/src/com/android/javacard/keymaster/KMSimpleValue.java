@@ -32,7 +32,7 @@ public class KMSimpleValue extends KMType {
     return Util.getShort(heap, (short) (instanceTable[KM_SIMPLE_VALUE_OFFSET] + 1));
   }
 
-  public static KMSimpleValue cast(short ptr) {
+  private static KMSimpleValue cast(short ptr) {
     if (heap[ptr] != SIMPLE_VALUE_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -55,6 +55,10 @@ public class KMSimpleValue extends KMType {
     return heap[(short) (instanceTable[KM_SIMPLE_VALUE_OFFSET] + 3)];
   }
 
+  public static byte getValue(short bPtr) {
+	 return KMSimpleValue.cast(bPtr).getValue();  
+  }
+  
   private static boolean isSimpleValueValid(byte value) {
     switch (value) {
       case TRUE:

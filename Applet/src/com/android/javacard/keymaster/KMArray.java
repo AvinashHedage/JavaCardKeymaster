@@ -75,7 +75,7 @@ public class KMArray extends KMType {
     return ptr;
   }
 
-  public static KMArray cast(short ptr) {
+  private static KMArray cast(short ptr) {
     if (heap[ptr] != ARRAY_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }

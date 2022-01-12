@@ -97,7 +97,7 @@ public class KMByteTag extends KMTag {
     return ptr;
   }
 
-  public static KMByteTag cast(short ptr) {
+  private static KMByteTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -122,6 +122,22 @@ public class KMByteTag extends KMTag {
   public short length() {
     short blobPtr = Util.getShort(heap, (short) (KMType.instanceTable[KM_BYTE_TAG_OFFSET] + TLV_HEADER_SIZE + 4));
     return KMByteBlob.length(blobPtr);
+  }
+  
+  public static short getKey(short bPtr) {
+	return KMByteTag.cast(bPtr).getKey();
+  }
+
+  public static short getTagType(short bPtr) {
+    return KMByteTag.cast(bPtr).getTagType();
+  }
+
+  public static short getValue(short bPtr) {
+	return KMByteTag.cast(bPtr).getValue();
+  }
+
+  public static short length(short bPtr) {
+    return KMByteTag.cast(bPtr).length();
   }
 
   private static boolean validateKey(short key) {

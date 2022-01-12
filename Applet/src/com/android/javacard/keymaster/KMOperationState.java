@@ -192,7 +192,7 @@ public class KMOperationState {
   }
 
   public void setUserSecureId(short integerArrayPtr) {
-    short length = KMIntegerArrayTag.cast(integerArrayPtr).length();
+    short length = KMIntegerArrayTag.length(integerArrayPtr);
     if (length > MAX_SECURE_USER_IDS) {
       KMException.throwIt(KMError.INVALID_KEY_BLOB);
     }
@@ -202,7 +202,7 @@ public class KMOperationState {
     short offset = 0;
     offset = Util.setShort(userSecureIds, offset, length);
     while (index < length) {
-      obj = KMIntegerArrayTag.cast(integerArrayPtr).get(index);
+      obj = KMIntegerArrayTag.get(integerArrayPtr, index);
       Util.arrayCopyNonAtomic(
           KMInteger.getBuffer(obj),
           KMInteger.getStartOff(obj),

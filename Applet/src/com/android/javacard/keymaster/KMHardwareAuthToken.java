@@ -80,7 +80,7 @@ public class KMHardwareAuthToken extends KMType {
     return ptr;
   }
 
-  public static KMHardwareAuthToken cast(short ptr) {
+  private static KMHardwareAuthToken cast(short ptr) {
     if (heap[ptr] != HW_AUTH_TOKEN_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -106,7 +106,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setChallenge(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, CHALLENGE, vals);
   }
@@ -117,7 +117,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setUserId(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, USER_ID, vals);
   }
@@ -128,7 +128,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setAuthenticatorId(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, AUTHENTICATOR_ID, vals);
   }
@@ -139,7 +139,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setHwAuthenticatorType(short vals) {
-    KMEnum.cast(vals);
+    KMEnum.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, HW_AUTHENTICATOR_TYPE, vals);
   }
@@ -150,7 +150,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setTimestamp(short vals) {
-    KMInteger.cast(vals);
+    KMInteger.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, TIMESTAMP, vals);
   }
@@ -161,7 +161,7 @@ public class KMHardwareAuthToken extends KMType {
   }
 
   public void setMac(short vals) {
-    KMByteBlob.cast(vals);
+    KMByteBlob.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, MAC, vals);
   }

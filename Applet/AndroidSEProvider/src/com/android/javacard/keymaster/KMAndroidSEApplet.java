@@ -80,14 +80,18 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
   private static byte provisionStatus = NOT_PROVISIONED;
   private static byte kmSpecification;
   private static KMSEProvider seProvider;
+  private static KMDecoder decoderInst;
+  private static KMRepository repositoryInst;
   private static KMKeymasterApplet appletInst;
 
   KMAndroidSEApplet() {
 	seProvider = new KMAndroidSEProvider();
+	repositoryInst = new KMRepository(seProvider.isUpgrading());
+    decoderInst = new KMDecoder();
     if(kmSpecification == KEYMASTER_SPECIFICATION) {
-    	appletInst = new KMKeymasterApplet(seProvider);
+    	appletInst = new KMKeymasterApplet(seProvider, repositoryInst, decoderInst);
     } else {
-    	appletInst = new KMKeymintApplet(seProvider);
+    	appletInst = new KMKeymintApplet(seProvider, repositoryInst, decoderInst);
     }
   }
 
@@ -132,7 +136,7 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
             
           case INS_SET_BOOT_ENDED_CMD:
             //set the flag to mark boot ended
-        	appletInst.getRepository().setBootEndedStatus(true);
+        	  repositoryInst.setBootEndedStatus(true);
         	appletInst.sendError(apdu, KMError.OK);
             break;   
 
@@ -233,23 +237,23 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
     KMArray.add(arrInst, (short) 3, KMByteBlob.exp());
     short coseSignArr = KMArray.exp(arrInst);
     short map = KMMap.instance((short) 1);
-    KMMap.cast(map).add((short) 0, KMTextString.exp(), coseSignArr);
+    KMMap.add(map, (short) 0, KMTextString.exp(), coseSignArr);
     // receive incoming data and decode it.
     byte[] srcBuffer = apdu.getBuffer();
     short recvLen = apdu.setIncomingAndReceive();
     short srcOffset = apdu.getOffsetCdata();
     short bufferLength = apdu.getIncomingLength();
-    short bufferStartOffset = appletInst.getRepository().allocReclaimableMemory(bufferLength);
+    short bufferStartOffset = repositoryInst.allocReclaimableMemory(bufferLength);
     short index = bufferStartOffset;
-    byte[] buffer = appletInst.getRepository().getHeap();
+    byte[] buffer = repositoryInst.getHeap();
     while (recvLen > 0 && ((short) (index - bufferStartOffset) < bufferLength)) {
       Util.arrayCopyNonAtomic(srcBuffer, srcOffset, buffer, index, recvLen);
       index += recvLen;
       recvLen = apdu.receiveBytes(srcOffset);
     }
     // decode
-    map = appletInst.getDecoder().decode(map, buffer, bufferStartOffset, bufferLength);
-    arrInst = KMMap.cast(map).getKeyValue((short) 0);
+    map = decoderInst.decode(map, buffer, bufferStartOffset, bufferLength);
+    arrInst = KMMap.getKeyValue(map, (short) 0);
     // Validate Additional certificate chain.
     short leafCoseKey =
     		appletInst.validateCertChain(false, KMCose.COSE_ALG_ES256, KMCose.COSE_ALG_ES256, arrInst,
@@ -267,7 +271,7 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
     }
     seProvider.persistAdditionalCertChain(buffer, bufferStartOffset, bufferLength);
     //reclaim memory
-    appletInst.getRepository().reclaimMemory(bufferLength);
+    repositoryInst.reclaimMemory(bufferLength);
     appletInst.sendError(apdu, KMError.OK);
   }
 
@@ -283,8 +287,7 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
   }
 
   public void setAttestationIds(short attIdVals) {
-    KMKeyParameters instParam = KMKeyParameters.cast(attIdVals);
-    short vals = instParam.getVals();
+    short vals = KMKeyParameters.getVals(attIdVals);
     short index = 0;
     short length = KMArray.length(vals);
     short key;
@@ -292,13 +295,13 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
     short obj;
     while (index < length) {
       obj = KMArray.get(vals, index);
-      key = KMTag.getKey(obj);
-      type = KMTag.getTagType(obj);
+      key = KMTag.getKMTagKey(obj);
+      type = KMTag.getKMTagType(obj);
 
       if (KMType.BYTES_TAG != type) {
         KMException.throwIt(KMError.INVALID_ARGUMENT);
       }
-      obj = KMByteTag.cast(obj).getValue();
+      obj = KMByteTag.getValue(obj);
       ((KMAndroidSEProvider) seProvider).setAttestationId(key, KMByteBlob.getBuffer(obj),
           KMByteBlob.getStartOff(obj),KMByteBlob.length(obj));
       index++;
@@ -512,7 +515,7 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
     element.initRead();
     provisionStatus = element.readByte();
     keymasterState = element.readByte();
-    appletInst.getRepository().onRestore(element);
+    repositoryInst.onRestore(element);
     seProvider.onRestore(element);
   }
 
@@ -522,8 +525,8 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
     short primitiveCount = seProvider.getBackupPrimitiveByteCount();
     short objectCount = seProvider.getBackupObjectCount();
     //Repository count
-    primitiveCount += appletInst.getRepository().getBackupPrimitiveByteCount();
-    objectCount += appletInst.getRepository().getBackupObjectCount();
+    primitiveCount += repositoryInst.getBackupPrimitiveByteCount();
+    objectCount += repositoryInst.getBackupObjectCount();
     //KMKeymasterApplet count
     primitiveCount += computePrimitveDataSize();
     objectCount += computeObjectCount();
@@ -533,7 +536,7 @@ public class KMAndroidSEApplet extends Applet implements AppletEvent, OnUpgradeL
         primitiveCount, objectCount);
     element.write(provisionStatus);
     element.write(keymasterState);
-    appletInst.getRepository().onSave(element);
+    repositoryInst.onSave(element);
     seProvider.onSave(element);
     return element;
   }

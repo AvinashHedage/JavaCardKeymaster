@@ -164,7 +164,7 @@ public class KMCoseKey extends KMCoseMap {
         );
     boolean isTestKey = false;
     if (ptr != 0)
-      isTestKey = (KMSimpleValue.cast(ptr).getValue() == KMSimpleValue.NULL);
+      isTestKey = (KMSimpleValue.getValue(ptr) == KMSimpleValue.NULL);
     return isTestKey;
   }
 
@@ -195,7 +195,7 @@ public class KMCoseKey extends KMCoseMap {
       if (value != KMType.INVALID_VALUE) {
         valid = false;
         ptr = getValueType(coseKeyTags[tagIndex], KMType.INVALID_VALUE);
-        switch (KMType.getType(ptr)) {
+        switch (KMType.getKMType(ptr)) {
           case KMType.BYTE_BLOB_TYPE:
             if ((KMByteBlob.length(value) == KMByteBlob.length(ptr)) &&
                 (0 ==

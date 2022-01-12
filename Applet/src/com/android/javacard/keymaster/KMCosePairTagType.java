@@ -126,7 +126,7 @@ public abstract class KMCosePairTagType extends KMType {
    * @return value of the key as short.
    */
   public static short getKeyValueShort(short keyPtr) {
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     short value = 0;
     if (type == INTEGER_TYPE) {
       value = KMInteger.getShort(keyPtr);
@@ -145,7 +145,7 @@ public abstract class KMCosePairTagType extends KMType {
    * @return value of the key as short.
    */
   public static short getKeyValueSignificantShort(short keyPtr) {
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     short value = 0;
     if (type == INTEGER_TYPE) {
       value = KMInteger.getSignificantShort(keyPtr);
@@ -158,7 +158,7 @@ public abstract class KMCosePairTagType extends KMType {
   }
 
   public static void getKeyValue(short keyPtr, byte[] dest, short offset, short len) {
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     if (type == INTEGER_TYPE) {
       KMInteger.getValue(keyPtr, dest, offset, len);
     } else if (type == NEG_INTEGER_TYPE) {
@@ -175,7 +175,7 @@ public abstract class KMCosePairTagType extends KMType {
    * @return offset from where the key starts.
    */
   public static short getKeyStartOffset(short keyPtr) {
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     short offset = 0;
     if (type == INTEGER_TYPE) {
       offset = KMInteger.getStartOff(keyPtr);
@@ -194,7 +194,7 @@ public abstract class KMCosePairTagType extends KMType {
    * @return length of the key.
    */
   public static short getKeyLength(short keyPtr) {
-    short type = KMType.getType(keyPtr);
+    short type = KMType.getKMType(keyPtr);
     short len = 0;
     if (type == INTEGER_TYPE) {
       len = KMInteger.length(keyPtr);

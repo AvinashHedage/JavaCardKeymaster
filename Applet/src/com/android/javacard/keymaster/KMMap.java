@@ -56,7 +56,7 @@ public class KMMap extends KMType {
     return ptr;
   }
 
-  public static KMMap cast(short ptr) {
+  private static KMMap cast(short ptr) {
     if (heap[ptr] != MAP_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -150,4 +150,30 @@ public class KMMap extends KMType {
   public byte[] getBuffer() {
     return heap;
   }
+  
+  public static void add(short bPtr, short index, short keyPtr, short valPtr) {
+    KMMap.cast(bPtr).add(index, keyPtr, valPtr);
+  }
+  
+  public static short getKeyValue(short bPtr, short index) {
+	return KMMap.cast(bPtr).getKeyValue(index);
+  }
+  
+  public static void swap(short bPtr, short index1, short index2) {
+	KMMap.cast(bPtr).swap(index1, index2);
+  }
+  
+  public static short getKey(short bPtr, short index) {
+	return KMMap.cast(bPtr).getKey(index);
+  }
+  
+  public static short length(short bPtr) {
+    return KMMap.cast(bPtr).length();
+  }
+
+  public static void canonicalize(short bPtr) {
+	KMMap.cast(bPtr).canonicalize();
+  }
+
+  
 }

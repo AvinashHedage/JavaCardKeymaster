@@ -75,7 +75,7 @@ public class KMEnumTag extends KMTag {
     return ptr;
   }
 
-  public static KMEnumTag cast(short ptr) {
+  private static KMEnumTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -144,10 +144,23 @@ public class KMEnumTag extends KMTag {
   }
 
   public static short getValue(short tagKey, short keyParameters) {
-    short tagPtr = KMKeyParameters.findTag(KMType.ENUM_TAG, tagKey, keyParameters);
+    short tagPtr = KMKeyParameters.findTag(keyParameters, KMType.ENUM_TAG, tagKey);
     if (tagPtr != KMType.INVALID_VALUE) {
       return heap[(short) (tagPtr + TLV_HEADER_SIZE + 4)];
     }
     return KMType.INVALID_VALUE;
   }
+  
+  public static byte getValue(short bPtr) {
+    return KMEnumTag.cast(bPtr).getValue();
+  }
+  
+  public static short getTagType(short bPtr) {
+    return KMEnumTag.cast(bPtr).getTagType();
+  }
+  
+  public static short getKey(short bPtr) {
+	return KMEnumTag.cast(bPtr).getKey();
+  }
+
 }

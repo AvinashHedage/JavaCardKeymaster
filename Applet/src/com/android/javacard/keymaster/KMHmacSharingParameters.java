@@ -65,7 +65,7 @@ public class KMHmacSharingParameters extends KMType {
     return ptr;
   }
 
-  public static KMHmacSharingParameters cast(short ptr) {
+  private static KMHmacSharingParameters cast(short ptr) {
     if (heap[ptr] != HMAC_SHARING_PARAM_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -86,13 +86,13 @@ public class KMHmacSharingParameters extends KMType {
   }
 
   public void setSeed(short vals) {
-    KMByteBlob.cast(vals);
+    KMByteBlob.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, SEED, vals);
   }
 
   public void setNonce(short vals) {
-    KMByteBlob.cast(vals);
+    KMByteBlob.validate(vals);
     short arrPtr = getVals();
     KMArray.add(arrPtr, NONCE, vals);
   }

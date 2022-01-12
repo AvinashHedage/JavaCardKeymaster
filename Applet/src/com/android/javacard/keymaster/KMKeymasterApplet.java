@@ -210,9 +210,9 @@ public class KMKeymasterApplet {
  private static final byte SERIAL_NUM = (byte) 0x01;
 
   protected static RemotelyProvisionedComponentDevice rkp;
-  protected static KMEncoder encoder;
   protected static KMDecoder decoder;
   protected static KMRepository repository;
+  protected static KMEncoder encoder;
   protected static KMSEProvider seProvider;
   protected static KMOperationState[] opTable;
   protected static short[] tmpVariables;
@@ -223,15 +223,15 @@ public class KMKeymasterApplet {
   /**
    * Registers this applet.
    */
-  protected KMKeymasterApplet(KMSEProvider seImpl) {
+  protected KMKeymasterApplet(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
     seProvider = seImpl;
     boolean isUpgrading = seProvider.isUpgrading();
     if (!isUpgrading) {
       seProvider.createMasterKey(MASTER_KEY_SIZE);
     }
-    repository = new KMRepository(isUpgrading);
+    repository = repoInst;
     encoder = new KMEncoder();
-    decoder = new KMDecoder();
+    decoder = decoderInst;
     data = JCSystem.makeTransientShortArray(DATA_ARRAY_SIZE, JCSystem.CLEAR_ON_DESELECT);
     tmpVariables =
         JCSystem.makeTransientShortArray(TMP_VARIABLE_ARRAY_SIZE, JCSystem.CLEAR_ON_DESELECT);
@@ -250,14 +250,6 @@ public class KMKeymasterApplet {
     initSystemBootParams((short)0,(short)0,(short)0,(short)0);
     kmCoseInst = KMCose.getInstance();
     rkp = new RemotelyProvisionedComponentDevice(this, encoder, decoder, repository, seProvider);
-  }
-
-  public KMRepository getRepository() {
-	  return repository;
-  }
-  
-  public KMDecoder getDecoder() {
-	  return decoder;
   }
   
   public void clean() {
@@ -547,7 +539,7 @@ public class KMKeymasterApplet {
     short verToken = KMArray.get(cmd, (short) 1);
     passwordOnly = KMInteger.getByte(passwordOnly);
     validateVerificationToken(verToken, scratchPad);
-    short verTime = KMVerificationToken.cast(verToken).getTimestamp();
+    short verTime = KMVerificationToken.getTimestamp(verToken);
     short lastDeviceLockedTime = repository.getDeviceTimeStamp();
     if (KMInteger.compare(verTime, lastDeviceLockedTime) > 0) {
       Util.arrayFillNonAtomic(scratchPad, (short) 0, (short) 8, (byte) 0);
@@ -693,7 +685,7 @@ public class KMKeymasterApplet {
     // Remove custom tags from key characteristics
     short teeParams = KMKeyCharacteristics.getTeeEnforced(data[KEY_CHARACTERISTICS]);
     if (teeParams != KMType.INVALID_VALUE) {
-      KMKeyParameters.cast(teeParams).deleteCustomTags();
+      KMKeyParameters.deleteCustomTags(teeParams);
     }
     // make response.
     short resp = KMArray.instance((short) 2);
@@ -896,8 +888,8 @@ public class KMKeymasterApplet {
 
   private boolean isKeyUpgradeRequired(short tag, short systemParam) {
     // validate the tag and check if key needs upgrade.
-    short tagValue = KMKeyParameters.findTag(KMType.UINT_TAG, tag, data[HW_PARAMETERS]);
-    tagValue = KMIntegerTag.cast(tagValue).getValue();
+    short tagValue = KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.UINT_TAG, tag);
+    tagValue = KMIntegerTag.getValue(tagValue);
     short zero = KMInteger.uint_8((byte) 0);
     if (tagValue != KMType.INVALID_VALUE) {
       // OS version in key characteristics must be less the OS version stored in Javacard or the
@@ -928,14 +920,14 @@ public class KMKeymasterApplet {
     data[KEY_PARAMETERS] = KMArray.get(cmd ,(short) 1);
     //tmpVariables[0]
     short appId =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_ID);
     if (appId != KMTag.INVALID_VALUE) {
-      data[APP_ID] = KMByteTag.cast(appId).getValue();
+      data[APP_ID] = KMByteTag.getValue(appId);
     }
     short appData =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_DATA);
     if (appData != KMTag.INVALID_VALUE) {
-      data[APP_DATA] = KMByteTag.cast(appData).getValue();
+      data[APP_DATA] = KMByteTag.getValue(appData);
     }
     // parse existing key blob
     parseEncryptedKeyBlob(data[KEY_BLOB], data[APP_ID], data[APP_DATA], scratchPad);
@@ -972,14 +964,14 @@ public class KMKeymasterApplet {
   private void processWrappingKeyBlob(short keyBlob, short wrapParams, byte[] scratchPad) {
     // Read App Id and App Data if any from un wrapping key params
     short appId =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, wrapParams);
+        KMKeyParameters.findTag(wrapParams, KMType.BYTES_TAG, KMType.APPLICATION_ID);
     short appData =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, wrapParams);
+        KMKeyParameters.findTag(wrapParams, KMType.BYTES_TAG, KMType.APPLICATION_DATA);
     if (appId != KMTag.INVALID_VALUE) {
-      appId = KMByteTag.cast(appId).getValue();
+      appId = KMByteTag.getValue(appId);
     }
     if (appData != KMTag.INVALID_VALUE) {
-      appData = KMByteTag.cast(appData).getValue();
+      appData = KMByteTag.getValue(appData);
     }
     data[APP_ID] = appId;
     data[APP_DATA] = appData;
@@ -1150,13 +1142,13 @@ public class KMKeymasterApplet {
     KMAttestationCert cert = makeCommonCert(swParameters, hwParameters,
         keyParams, scratchPad, seProvider);
 
-    short subject = KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.CERTIFICATE_SUBJECT_NAME, keyParams);
+    short subject = KMKeyParameters.findTag(keyParams, KMType.BYTES_TAG, KMType.CERTIFICATE_SUBJECT_NAME);
 
     // If no subject name is specified then use the default subject name.
-    if(subject == KMType.INVALID_VALUE || KMByteTag.cast(subject).length() == 0){
+    if(subject == KMType.INVALID_VALUE || KMByteTag.length(subject) == 0){
       subject = KMByteBlob.instance(defaultSubject, (short) 0, (short) defaultSubject.length);
     }else{
-      subject = KMByteTag.cast(subject).getValue();
+      subject = KMByteTag.getValue(subject);
     }
     cert.subjectName(subject);
 
@@ -1165,14 +1157,14 @@ public class KMKeymasterApplet {
     short appData = KMType.INVALID_VALUE;
     if(attKeyParam != KMType.INVALID_VALUE) {
       appId =
-          KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, attKeyParam);
+          KMKeyParameters.findTag(attKeyParam, KMType.BYTES_TAG, KMType.APPLICATION_ID);
       if (appId != KMTag.INVALID_VALUE) {
-        appId = KMByteTag.cast(appId).getValue();
+        appId = KMByteTag.getValue(appId);
       }
       appData =
-          KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, attKeyParam);
+          KMKeyParameters.findTag(attKeyParam, KMType.BYTES_TAG, KMType.APPLICATION_DATA);
       if (appData != KMTag.INVALID_VALUE) {
-        appData = KMByteTag.cast(appData).getValue();
+        appData = KMByteTag.getValue(appData);
       }
     }
     //TODO remove following line
@@ -1185,7 +1177,7 @@ public class KMKeymasterApplet {
     short attKeyPurpose =
         KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.PURPOSE, attestParam);
     // If the attest key's purpose is not "attest key" then error.
-    if (!KMEnumArrayTag.cast(attKeyPurpose).contains(KMType.ATTEST_KEY)) {
+    if (!KMEnumArrayTag.contains(attKeyPurpose, KMType.ATTEST_KEY)) {
       KMException.throwIt(KMError.INCOMPATIBLE_PURPOSE);
     }
     // If issuer is not present then it is an error
@@ -1194,7 +1186,7 @@ public class KMKeymasterApplet {
     }
     short alg = KMKeyParameters.findTag(KMType.ENUM_TAG, KMType.ALGORITHM, attestParam);
 
-    if(KMEnumTag.cast(alg).getValue() == KMType.RSA) {
+    if(KMEnumTag.getValue(alg) == KMType.RSA) {
       short attestationKeyPublic = KMArray.get(keyBlob, KEY_BLOB_PUB_KEY);
       cert.rsaAttestKey(attestationKeySecret, attestationKeyPublic, KMType.ATTESTATION_CERT);
     }else{
@@ -1243,7 +1235,7 @@ public class KMKeymasterApplet {
 
     // Save attestation application id - must be present.
     short attAppId =
-        KMKeyParameters.findTag( KMType.BYTES_TAG, KMType.ATTESTATION_APPLICATION_ID, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.ATTESTATION_APPLICATION_ID);
     if (attAppId == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.ATTESTATION_APPLICATION_ID_MISSING);
     }
@@ -1274,20 +1266,20 @@ public class KMKeymasterApplet {
     KMAttestationCert cert =
         makeCommonCert(data[SW_PARAMETERS], data[HW_PARAMETERS],
             data[KEY_PARAMETERS], scratchPad, seProvider);
-    short alg = KMKeyParameters.findTag(KMType.ENUM_TAG, KMType.ALGORITHM, data[KEY_PARAMETERS]);
+    short alg = KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_TAG, KMType.ALGORITHM);
     byte mode = KMType.FAKE_CERT;
     if(attPrivKey != KMType.INVALID_VALUE){
       mode = KMType.SELF_SIGNED_CERT;
     }
-    short subject = KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.CERTIFICATE_SUBJECT_NAME, data[KEY_PARAMETERS]);
+    short subject = KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.CERTIFICATE_SUBJECT_NAME);
     // If no subject name is specified then use the default subject name.
-    if(subject == KMType.INVALID_VALUE || KMByteTag.cast(subject).length() == 0){
+    if(subject == KMType.INVALID_VALUE || KMByteTag.length(subject) == 0){
       subject = KMByteBlob.instance(defaultSubject, (short) 0, (short) defaultSubject.length);
     }else{
-      subject = KMByteTag.cast(subject).getValue();
+      subject = KMByteTag.getValue(subject);
     }
 
-    if(KMEnumTag.cast(alg).getValue() == KMType.RSA) {
+    if(KMEnumTag.getValue(alg) == KMType.RSA) {
       cert.rsaAttestKey(attPrivKey, attPubKey, mode);
     }else{
       cert.ecAttestKey(attPrivKey, mode);
@@ -1338,9 +1330,9 @@ public class KMKeymasterApplet {
     short attIdTagValue;
     short storedAttIdLen;
     while (index < (short) attTags.length) {
-      attIdTag = KMKeyParameters.findTag(KMType.BYTES_TAG, attTags[index], data[KEY_PARAMETERS]);
+      attIdTag = KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, attTags[index]);
       if (attIdTag != KMType.INVALID_VALUE) {
-        attIdTagValue = KMByteTag.cast(attIdTag).getValue();
+        attIdTagValue = KMByteTag.getValue(attIdTag);
         storedAttIdLen = seProvider.getAttestationId(attTags[index],scratchPad, (short)0);
         // Return CANNOT_ATTEST_IDS if Attestation IDs are not provisioned or
         // Attestation IDs are deleted.
@@ -1364,7 +1356,7 @@ public class KMKeymasterApplet {
 
   private void addTags(short params, boolean hwEnforced, KMAttestationCert cert) {
     short index = 0;
-    short arr = KMKeyParameters.cast(params).getVals();
+    short arr = KMKeyParameters.getVals(params);
     short len = KMArray.length(arr);
     short tag;
     while (index < len) {
@@ -1379,18 +1371,18 @@ public class KMKeymasterApplet {
       return;
     }
     // temporal count T
-    short time = KMKeyParameters.findTag(KMType.DATE_TAG, KMType.CREATION_DATETIME, data[SW_PARAMETERS]);
+    short time = KMKeyParameters.findTag(data[SW_PARAMETERS], KMType.DATE_TAG, KMType.CREATION_DATETIME);
     if(time == KMType.INVALID_VALUE){
       KMException.throwIt(KMError.INVALID_TAG);
     }
-    time = KMIntegerTag.cast(time).getValue();
+    time = KMIntegerTag.getValue(time);
 
     // Application Id C
-    short appId = KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.ATTESTATION_APPLICATION_ID, data[KEY_PARAMETERS]);
+    short appId = KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.ATTESTATION_APPLICATION_ID);
     if (appId == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.ATTESTATION_APPLICATION_ID_MISSING);
     }
-    appId = KMByteTag.cast(appId).getValue();
+    appId = KMByteTag.getValue(appId);
 
     // Reset After Rotation R - it will be part of HW Enforced key
     // characteristics
@@ -1765,8 +1757,7 @@ public class KMKeymasterApplet {
     // If device is locked and key characteristics requires unlocked device then check whether
     // HW auth token has correct timestamp.
     short ptr =
-        KMKeyParameters.findTag(
-            KMType.BOOL_TAG, KMType.UNLOCKED_DEVICE_REQUIRED, data[HW_PARAMETERS]);
+        KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.BOOL_TAG, KMType.UNLOCKED_DEVICE_REQUIRED);
 
     if (ptr != KMType.INVALID_VALUE && repository.getDeviceLock()) {
       if (!validateHwToken(data[HW_TOKEN], scratchPad)) {
@@ -1803,11 +1794,11 @@ public class KMKeymasterApplet {
         (short) authVerification.length);
     short len = (short) authVerification.length;
     // concatenate challenge - 8 bytes
-    short ptr = KMVerificationToken.cast(verToken).getChallenge();
+    short ptr = KMVerificationToken.getChallenge(verToken);
     KMInteger.value(ptr, scratchPad, (short) (len + (short) (8 - KMInteger.length(ptr))));
     len += 8;
     // concatenate timestamp -8 bytes
-    ptr = KMVerificationToken.cast(verToken).getTimestamp();
+    ptr = KMVerificationToken.getTimestamp(verToken);
     KMInteger.value(ptr, scratchPad, (short) (len + (short) (8 - KMInteger.length(ptr))));
     len += 8;
     // concatenate security level - 4 bytes
@@ -1975,7 +1966,7 @@ public class KMKeymasterApplet {
   	  // But if it is called for neither then return error.
   	  short len = KMByteBlob.length(data[INPUT_DATA]);
   	  short tag =
-  	       KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.ASSOCIATED_DATA, data[KEY_PARAMETERS]);
+  	       KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.ASSOCIATED_DATA);
   	   // For Finish operation the input data can be zero length and associated data can be
   	   // INVALID_VALUE
   	   // For update operation either input data or associated data should be present.
@@ -1988,7 +1979,7 @@ public class KMKeymasterApplet {
   		 if (!op.isAesGcmUpdateAllowed()) {
   	        KMException.throwIt(KMError.INVALID_TAG);
   	     }
-  	     aData = KMByteTag.cast(tag).getValue();
+  	     aData = KMByteTag.getValue(tag);
   	  }
   	}
   	try {
@@ -2067,14 +2058,14 @@ public class KMKeymasterApplet {
     purpose = KMEnum.getVal(purpose);
     // Check for app id and app data.
     data[APP_ID] =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_ID);
     data[APP_DATA] =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_DATA);
     if (data[APP_ID] != KMTag.INVALID_VALUE) {
-      data[APP_ID] = KMByteTag.cast(data[APP_ID]).getValue();
+      data[APP_ID] = KMByteTag.getValue(data[APP_ID]);
     }
     if (data[APP_DATA] != KMTag.INVALID_VALUE) {
-      data[APP_DATA] = KMByteTag.cast(data[APP_DATA]).getValue();
+      data[APP_DATA] = KMByteTag.getValue(data[APP_DATA]);
     }
     // Parse the encrypted blob and decrypt it.
     parseEncryptedKeyBlob(data[KEY_BLOB], data[APP_ID], data[APP_DATA], scratchPad);
@@ -2198,16 +2189,16 @@ public class KMKeymasterApplet {
 
   private void authorizeDigest(KMOperationState op) {
     short digests =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.DIGEST, data[HW_PARAMETERS]);
+        KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.DIGEST);
     op.setDigest(KMType.DIGEST_NONE);
     short param =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.DIGEST, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.DIGEST);
     if (param != KMType.INVALID_VALUE) {
-      if (KMEnumArrayTag.cast(param).length() != 1) {
+      if (KMEnumArrayTag.length(param) != 1) {
         KMException.throwIt(KMError.UNSUPPORTED_DIGEST);
       }
-      param = KMEnumArrayTag.cast(param).get((short) 0);
-      if (!KMEnumArrayTag.cast(digests).contains(param)) {
+      param = KMEnumArrayTag.get(param, (short) 0);
+      if (!KMEnumArrayTag.contains(digests, param)) {
         KMException.throwIt(KMError.INCOMPATIBLE_DIGEST);
       }
       op.setDigest((byte) param);
@@ -2215,13 +2206,13 @@ public class KMKeymasterApplet {
       KMException.throwIt(KMError.UNSUPPORTED_DIGEST);
     }
     short paramPadding =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.PADDING, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.PADDING);
     if (paramPadding != KMType.INVALID_VALUE) {
-      if (KMEnumArrayTag.cast(paramPadding).length() != 1) {
+      if (KMEnumArrayTag.length(paramPadding) != 1) {
         //TODO vts fails because it expects UNSUPPORTED_PADDING_MODE
         KMException.throwIt(KMError.UNSUPPORTED_PADDING_MODE);
       }
-      paramPadding = KMEnumArrayTag.cast(paramPadding).get((short) 0);
+      paramPadding = KMEnumArrayTag.get(paramPadding, (short) 0);
     }
     switch (op.getAlgorithm()) {
       case KMType.RSA:
@@ -2243,16 +2234,16 @@ public class KMKeymasterApplet {
 
   private void authorizePadding(KMOperationState op) {
     short paddings =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.PADDING, data[HW_PARAMETERS]);
+        KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.PADDING);
     op.setPadding(KMType.PADDING_NONE);
     short param =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.PADDING, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.PADDING);
     if (param != KMType.INVALID_VALUE) {
-      if (KMEnumArrayTag.cast(param).length() != 1) {
+      if (KMEnumArrayTag.length(param) != 1) {
         KMException.throwIt(KMError.INVALID_ARGUMENT);
       }
-      param = KMEnumArrayTag.cast(param).get((short) 0);
-      if (!KMEnumArrayTag.cast(paddings).contains(param)) {
+      param = KMEnumArrayTag.get(param, (short) 0);
+      if (!KMEnumArrayTag.contains(paddings, param)) {
         KMException.throwIt(KMError.INCOMPATIBLE_PADDING_MODE);
       }
     }
@@ -2301,12 +2292,12 @@ public class KMKeymasterApplet {
 
   private void authorizeBlockModeAndMacLength(KMOperationState op) {
     short param =
-        KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.BLOCK_MODE, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.BLOCK_MODE);
     if (param != KMType.INVALID_VALUE) {
-      if (KMEnumArrayTag.cast(param).length() != 1) {
+      if (KMEnumArrayTag.length(param) != 1) {
         KMException.throwIt(KMError.UNSUPPORTED_BLOCK_MODE);
       }
-      param = KMEnumArrayTag.cast(param).get((short) 0);
+      param = KMEnumArrayTag.get(param, (short) 0);
     }
     if (KMType.AES == op.getAlgorithm() || KMType.DES == op.getAlgorithm()) {
       if (!KMEnumArrayTag.contains(KMType.BLOCK_MODE, param, data[HW_PARAMETERS])) {
@@ -2424,10 +2415,10 @@ public class KMKeymasterApplet {
       KMException.throwIt(KMError.CALLER_NONCE_PROHIBITED);
     }
 
-    short nonce = KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.NONCE, data[KEY_PARAMETERS]);
+    short nonce = KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.NONCE);
     // If Nonce is present then check whether the size of nonce is correct.
     if (nonce != KMType.INVALID_VALUE) {
-      data[IV] = KMByteTag.cast(nonce).getValue();
+      data[IV] = KMByteTag.getValue(nonce);
       // For CBC mode - iv must be 8 bytes
       if (op.getBlockMode() == KMType.CBC
           && op.getAlgorithm() == KMType.DES
@@ -2551,8 +2542,7 @@ public class KMKeymasterApplet {
 
   private void beginTrustedConfirmationOperation(KMOperationState op) {
 	    // Check for trusted confirmation - if required then set the signer in op state.
-    if (KMKeyParameters.findTag(KMType.BOOL_TAG, KMType.TRUSTED_CONFIRMATION_REQUIRED,
-        data[HW_PARAMETERS]) != KMType.INVALID_VALUE) {
+    if (KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.BOOL_TAG, KMType.TRUSTED_CONFIRMATION_REQUIRED) != KMType.INVALID_VALUE) {
 
       op.setTrustedConfirmationSigner(
           seProvider.initTrustedConfirmationSymmetricOperation(seProvider.getComputedHmacKey()));
@@ -2655,13 +2645,13 @@ public class KMKeymasterApplet {
       short secureUserIdsObj) {
     short secureUserId = KMHardwareAuthToken.getUserId(hwAuthToken);
     if (!KMInteger.isZero(secureUserId)) {
-      if (KMIntegerArrayTag.cast(secureUserIdsObj).contains(secureUserId))
+      if (KMIntegerArrayTag.contains(secureUserIdsObj, secureUserId))
         return true;
     }
 
     short authenticatorId = KMHardwareAuthToken.getAuthenticatorId(hwAuthToken);
     if (!KMInteger.isZero(authenticatorId)) {
-      if (KMIntegerArrayTag.cast(secureUserIdsObj).contains(authenticatorId))
+      if (KMIntegerArrayTag.contains(secureUserIdsObj, authenticatorId))
         return true;
     }
     return false;
@@ -2689,11 +2679,11 @@ public class KMKeymasterApplet {
     short authType;
     // Authorize User Secure Id and Auth timeout
     short userSecureIdPtr =
-        KMKeyParameters.findTag(KMType.ULONG_ARRAY_TAG, KMType.USER_SECURE_ID, data[HW_PARAMETERS]);
+        KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.ULONG_ARRAY_TAG, KMType.USER_SECURE_ID);
     if (userSecureIdPtr != KMType.INVALID_VALUE) {
       // Authentication required.
       if (KMType.INVALID_VALUE !=
-          KMKeyParameters.findTag(KMType.BOOL_TAG, KMType.NO_AUTH_REQUIRED, data[HW_PARAMETERS])) {
+          KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.BOOL_TAG, KMType.NO_AUTH_REQUIRED)) {
         // Key has both USER_SECURE_ID and NO_AUTH_REQUIRED
         KMException.throwIt(KMError.INVALID_KEY_BLOB);
       }
@@ -2705,7 +2695,7 @@ public class KMKeymasterApplet {
       }
 
       short authTimeoutTagPtr =
-          KMKeyParameters.findTag(KMType.UINT_TAG, KMType.AUTH_TIMEOUT, data[HW_PARAMETERS]);
+          KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.UINT_TAG, KMType.AUTH_TIMEOUT);
       if (authTimeoutTagPtr != KMType.INVALID_VALUE) {
         // authenticate user
         if (!authTokenMatches(userSecureIdPtr, authType, scratchPad)) {
@@ -2717,7 +2707,7 @@ public class KMKeymasterApplet {
         if (authTimeoutTagPtr == KMType.INVALID_VALUE) {
           KMException.throwIt(KMError.INVALID_KEY_BLOB);
         }
-        authTime = KMIntegerTag.cast(authTimeoutTagPtr).getValue();
+        authTime = KMIntegerTag.getValue(authTimeoutTagPtr);
         // set the one time auth
         op.setOneTimeAuthReqd(true);
         // set the authentication time stamp in operation state
@@ -2908,14 +2898,14 @@ public class KMKeymasterApplet {
     data[KEY_PARAMETERS] = KMArray.get(cmd, (short) 8);
     // Read App Id and App Data if any from un wrapping key params
     data[APP_ID] =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_ID);
     data[APP_DATA] =
-    KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, data[KEY_PARAMETERS]);
+    KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_DATA);
     if (data[APP_ID] != KMTag.INVALID_VALUE) {
-      data[APP_ID] = KMByteTag.cast(data[APP_ID]).getValue();
+      data[APP_ID] = KMByteTag.getValue(data[APP_ID]);
     }
     if (data[APP_DATA] != KMTag.INVALID_VALUE) {
-      data[APP_DATA] = KMByteTag.cast(data[APP_DATA]).getValue();
+      data[APP_DATA] = KMByteTag.getValue(data[APP_DATA]);
     }
     // parse the wrapping key blob
     parseEncryptedKeyBlob(data[KEY_BLOB], data[APP_ID], data[APP_DATA], scratchPad);
@@ -3329,7 +3319,7 @@ public class KMKeymasterApplet {
       return; // nothing to update
     }
     // Create Update Param array and copy current params
-    short params = KMKeyParameters.cast(data[KEY_PARAMETERS]).getVals();
+    short params = KMKeyParameters.getVals(data[KEY_PARAMETERS]);
     len = (short) (KMArray.length(params) + (short) (len / 2));
     short updatedParams = KMArray.instance(len); // update params
 
@@ -3586,14 +3576,14 @@ public class KMKeymasterApplet {
 
     // Check for app id and app data.
     data[APP_ID] =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_ID, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_ID);
     data[APP_DATA] =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.APPLICATION_DATA, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.APPLICATION_DATA);
     if (data[APP_ID] != KMTag.INVALID_VALUE) {
-      data[APP_ID] = KMByteTag.cast(data[APP_ID]).getValue();
+      data[APP_ID] = KMByteTag.getValue(data[APP_ID]);
     }
     if (data[APP_DATA] != KMTag.INVALID_VALUE) {
-      data[APP_DATA] = KMByteTag.cast(data[APP_DATA]).getValue();
+      data[APP_DATA] = KMByteTag.getValue(data[APP_DATA]);
     }
     // parse key blob
     parseEncryptedKeyBlob(data[KEY_BLOB], data[APP_ID], data[APP_DATA], scratchPad);
@@ -3612,11 +3602,11 @@ public class KMKeymasterApplet {
   }
 
   private short getAttestationMode(short attKeyBlob, short attChallenge){
-    short alg = KMKeyParameters.findTag(KMType.ENUM_TAG, KMType.ALGORITHM, data[HW_PARAMETERS]);
+    short alg = KMKeyParameters.findTag(data[HW_PARAMETERS], KMType.ENUM_TAG, KMType.ALGORITHM);
     short mode = KMType.NO_CERT;
     // TODO Keymaster specification: Symmetric keys with challenge should return error.
-    if(KMEnumTag.cast(alg).getValue() != KMType.RSA &&
-        KMEnumTag.cast(alg).getValue() != KMType.EC){
+    if(KMEnumTag.getValue(alg) != KMType.RSA &&
+        KMEnumTag.getValue(alg) != KMType.EC){
       return mode;
     }
     // If attestation keyblob preset
@@ -3648,9 +3638,9 @@ public class KMKeymasterApplet {
     KMTag.assertAbsence(data[KEY_PARAMETERS],KMType.BOOL_TAG,KMType.DEVICE_UNIQUE_ATTESTATION,KMError.CANNOT_ATTEST_IDS);
     // Read attestation challenge if present
     short attChallenge =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.ATTESTATION_CHALLENGE, data[KEY_PARAMETERS]);
+        KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.BYTES_TAG, KMType.ATTESTATION_CHALLENGE);
     if(attChallenge != KMType.INVALID_VALUE){
-      attChallenge = KMByteTag.cast(attChallenge).getValue();
+      attChallenge = KMByteTag.getValue(attChallenge);
     }
     // No attestation required for symmetric keys
     short mode = getAttestationMode(attKeyBlob, attChallenge);
@@ -3742,14 +3732,14 @@ public class KMKeymasterApplet {
     // Read Block mode - array of byte values
     if(KMTag.isPresent(data[KEY_PARAMETERS],KMType.ENUM_ARRAY_TAG,KMType.BLOCK_MODE)){
       short blockModes =
-          KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.BLOCK_MODE, data[KEY_PARAMETERS]);
+          KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.ENUM_ARRAY_TAG, KMType.BLOCK_MODE);
       // If it is a GCM mode
-      if (KMEnumArrayTag.cast(blockModes).contains(KMType.GCM)){
+      if (KMEnumArrayTag.contains(blockModes, KMType.GCM)){
         // Min mac length must be present
         KMTag.assertPresence(data[KEY_PARAMETERS],KMType.UINT_TAG, KMType.MIN_MAC_LENGTH, KMError.MISSING_MIN_MAC_LENGTH);
         short macLength =
-            KMKeyParameters.findTag(KMType.UINT_TAG, KMType.MIN_MAC_LENGTH, data[KEY_PARAMETERS]);
-        macLength = KMIntegerTag.cast(macLength).getValue();
+            KMKeyParameters.findTag(data[KEY_PARAMETERS], KMType.UINT_TAG, KMType.MIN_MAC_LENGTH);
+        macLength = KMIntegerTag.getValue(macLength);
         // Validate the MIN_MAC_LENGTH for AES - should be multiple of 8, less then 128 bits
         // and greater the 96 bits
         if (KMInteger.getSignificantShort(macLength) != 0
@@ -4437,9 +4427,9 @@ public class KMKeymasterApplet {
       arrayLen = 4;
     }
     short params = KMArray.instance((short) arrayLen);
-    KMArray.add(params, (short) 0, KMKeyParameters.cast(hwParams).getVals());
-    KMArray.add(params, (short) 1, KMKeyParameters.cast(swParams).getVals());
-    KMArray.add(params, (short) 2, KMKeyParameters.cast(hiddenParams).getVals());
+    KMArray.add(params, (short) 0, KMKeyParameters.getVals(hwParams));
+    KMArray.add(params, (short) 1, KMKeyParameters.getVals(swParams));
+    KMArray.add(params, (short) 2, KMKeyParameters.getVals(hiddenParams));
     if (4 == arrayLen) {
       KMArray.add(params, (short) 3, pubKey);
     }
@@ -4456,21 +4446,21 @@ public class KMKeymasterApplet {
     KMAttestationCert cert = KMAttestationCertImpl.instance(rsaCert, seProvider);
     // notBefore
     short notBefore =
-        KMKeyParameters.findTag(KMType.DATE_TAG, KMType.ACTIVE_DATETIME, swParams);
+        KMKeyParameters.findTag(swParams, KMType.DATE_TAG, KMType.ACTIVE_DATETIME);
     if (notBefore == KMType.INVALID_VALUE) {
       notBefore =
-          KMKeyParameters.findTag(KMType.DATE_TAG, KMType.CREATION_DATETIME, swParams);
+          KMKeyParameters.findTag(swParams, KMType.DATE_TAG, KMType.CREATION_DATETIME);
       if (notBefore == KMType.INVALID_VALUE) {
         KMException.throwIt(KMError.INVALID_KEY_BLOB);
       }
     }
-    notBefore = KMIntegerTag.cast(notBefore).getValue();
+    notBefore = KMIntegerTag.getValue(notBefore);
     cert.notBefore(notBefore, false, scratchPad);
     // notAfter
     // expiry time - byte blob
     boolean derEncoded = false;
     short notAfter =
-        KMKeyParameters.findTag(KMType.DATE_TAG, KMType.USAGE_EXPIRE_DATETIME, swParams);
+        KMKeyParameters.findTag(swParams, KMType.DATE_TAG, KMType.USAGE_EXPIRE_DATETIME);
     if (notAfter == KMType.INVALID_VALUE) {
       notAfter = getProvisionedCertificateData(seProvider, KMSEProvider.CERTIFICATE_EXPIRY);
       derEncoded = true;
@@ -4506,11 +4496,11 @@ public class KMKeymasterApplet {
 
   public short getConfirmationToken(short confToken, short keyParams) {
     short cToken =
-        KMKeyParameters.findTag(KMType.BYTES_TAG, KMType.CONFIRMATION_TOKEN, keyParams);
+        KMKeyParameters.findTag(keyParams, KMType.BYTES_TAG, KMType.CONFIRMATION_TOKEN);
     if (cToken == KMType.INVALID_VALUE) {
       KMException.throwIt(KMError.NO_USER_CONFIRMATION);
     }
-    return KMByteTag.cast(cToken).getValue();
+    return KMByteTag.getValue(cToken);
   }
 
   public short getKMVerificationTokenExp() {

@@ -61,16 +61,20 @@ public class KMByteBlob extends KMType {
   }
 
   // cast the ptr to KMByteBlob
-  public static KMByteBlob cast(short ptr) {
+  private static KMByteBlob cast(short ptr) {
+    validate(ptr);   
+    return proto(ptr);
+  }
+  
+  public static void validate(short ptr) {
     if (heap[ptr] != BYTE_BLOB_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
     if (Util.getShort(heap, (short) (ptr + 1)) == INVALID_VALUE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
-    return proto(ptr);
   }
-
+  
   // Add the byte
   public void add(short index, byte val) {
     short len = length();

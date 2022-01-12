@@ -64,7 +64,7 @@ public class KMTextString extends KMByteBlob {
   }
 
   // cast the ptr to KMTextString
-  public static KMTextString cast(short ptr) {
+  private static KMTextString cast(short ptr) {
     if (heap[ptr] != TEXT_STRING_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }

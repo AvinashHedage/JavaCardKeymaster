@@ -69,15 +69,14 @@ public class KMEnumArrayTag extends KMTag {
     if (allowedVals == null) {
       ISOException.throwIt(ISO7816.SW_DATA_INVALID);
     }
-    KMByteBlob blob = KMByteBlob.cast(byteBlob);
     short byteIndex = 0;
     short enumIndex;
     boolean validValue;
-    while (byteIndex < blob.length()) {
+    while (byteIndex < KMByteBlob.length(byteBlob)) {
       enumIndex = 0;
       validValue = false;
       while (enumIndex < allowedVals.length) {
-        if (blob.get(byteIndex) == allowedVals[enumIndex]) {
+        if (KMByteBlob.get(byteBlob, byteIndex) == allowedVals[enumIndex]) {
           validValue = true;
           break;
         }
@@ -95,7 +94,7 @@ public class KMEnumArrayTag extends KMTag {
     return ptr;
   }
 
-  public static KMEnumArrayTag cast(short ptr) {
+  private static KMEnumArrayTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -151,7 +150,7 @@ public class KMEnumArrayTag extends KMTag {
   }
 
   public static short getValues(short tagId, short params, byte[] buf, short start) {
-    short tag = KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, tagId, params);
+    short tag = KMKeyParameters.findTag(params, KMType.ENUM_ARRAY_TAG, tagId);
     if (tag == KMType.INVALID_VALUE) {
       return KMType.INVALID_VALUE;
     }
@@ -164,7 +163,7 @@ public class KMEnumArrayTag extends KMTag {
   }
 
   public static boolean contains(short tagId, short tagValue, short params) {
-    short tag = KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, tagId, params);
+    short tag = KMKeyParameters.findTag(params, KMType.ENUM_ARRAY_TAG, tagId);
     if (tag != KMType.INVALID_VALUE) {
       short index = 0;
       while (index < KMEnumArrayTag.cast(tag).length()) {
@@ -178,7 +177,7 @@ public class KMEnumArrayTag extends KMTag {
   }
 
   public static short length(short tagId, short params) {
-    short tag = KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, tagId, params);
+    short tag = KMKeyParameters.findTag(params, KMType.ENUM_ARRAY_TAG, tagId);
     if (tag != KMType.INVALID_VALUE) {
       return KMEnumArrayTag.cast(tag).length();
     }
@@ -300,4 +299,30 @@ public class KMEnumArrayTag extends KMTag {
       return false;
     }
   }
+  
+  public static short get(short bPtr, short index) {
+	return KMEnumArrayTag.cast(bPtr).get(index);
+  }
+  
+  public static short length(short bPtr) {
+	return KMEnumArrayTag.cast(bPtr).length();
+  }
+  
+  public static short getValues(short bPtr) {
+    return KMEnumArrayTag.cast(bPtr).getValues();
+  }
+    
+  public static short getTagType(short bPtr) {
+	return KMType.ENUM_ARRAY_TAG;
+  }
+  
+  public static short getKey(short bPtr) {
+	return KMEnumArrayTag.cast(bPtr).getKey();
+  }
+  
+  public static boolean contains(short bPtr, short tagValue) {
+    return KMEnumArrayTag.cast(bPtr).contains(tagValue);
+  }
+
+  
 }

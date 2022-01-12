@@ -78,7 +78,7 @@ public class KMBoolTag extends KMTag {
     return ptr;
   }
 
-  public static KMBoolTag cast(short ptr) {
+  private static KMBoolTag cast(short ptr) {
     if (heap[ptr] != TAG_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
     }
@@ -99,7 +99,19 @@ public class KMBoolTag extends KMTag {
   public byte getVal() {
     return heap[(short) (KMType.instanceTable[KM_BOOL_TAG_OFFSET] + TLV_HEADER_SIZE + 4)];
   }
+  
+  public static short getKey(short bPtr) {
+    return KMBoolTag.cast(bPtr).getKey();
+  }
 
+  public static short getTagType(short bPtr) {
+	return KMBoolTag.cast(bPtr).getTagType();
+  }
+
+  public static byte getVal(short bPtr) {
+    return KMBoolTag.cast(bPtr).getVal();
+  }
+  
   // validate the tag key.
   private static boolean validateKey(short key) {
     short index = (short) tags.length;

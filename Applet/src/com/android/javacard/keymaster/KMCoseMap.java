@@ -41,7 +41,7 @@ public abstract class KMCoseMap extends KMType {
    * @return instance type of either KMCoseHeaders or KMCoseKey.
    */
   public static short createInstanceFromType(short typePtr, short arrPtr) {
-    short mapType = KMType.getType(typePtr);
+    short mapType = KMType.getKMType(typePtr);
     switch (mapType) {
       case KMType.COSE_HEADERS_TYPE:
         return KMCoseHeaders.instance(arrPtr);
@@ -56,7 +56,7 @@ public abstract class KMCoseMap extends KMType {
   }
 
   public static short getVals(short ptr) {
-    short mapType = KMType.getType(ptr);
+    short mapType = KMType.getKMType(ptr);
     switch (mapType) {
       case KMType.COSE_HEADERS_TYPE:
         return KMCoseHeaders.cast(ptr).getVals();
@@ -108,10 +108,10 @@ public abstract class KMCoseMap extends KMType {
   }
 
   private static void swap(short ptr, short firstIndex, short secondIndex) {
-    if (KMType.getType(ptr) == KMType.ARRAY_TYPE) {
+    if (KMType.getKMType(ptr) == KMType.ARRAY_TYPE) {
       KMArray.swap(ptr, firstIndex, secondIndex);
     } else {
-      KMMap.cast(ptr).swap(firstIndex, secondIndex);
+      KMMap.swap(ptr, firstIndex, secondIndex);
     }
   }
 
@@ -120,12 +120,12 @@ public abstract class KMCoseMap extends KMType {
     short secondKey;
     short firstKeyLen;
     short secondKeyLen;
-    if (KMType.getType(ptr) == KMType.ARRAY_TYPE) {
+    if (KMType.getKMType(ptr) == KMType.ARRAY_TYPE) {
       firstKey = getKey(KMArray.get(ptr, index));
       secondKey = getKey(KMArray.get(ptr, (short) (index + 1)));
     } else { // Map
-      firstKey = KMMap.cast(ptr).getKey(index);
-      secondKey = KMMap.cast(ptr).getKey((short) (index + 1));
+      firstKey = KMMap.getKey(ptr, index);
+      secondKey = KMMap.getKey(ptr, (short) (index + 1));
     }
     firstKeyLen = KMKeymasterApplet.encoder.encode(firstKey, scratchpad, (short) 0);
     secondKeyLen = KMKeymasterApplet.encoder.encode(secondKey, scratchpad, firstKeyLen);

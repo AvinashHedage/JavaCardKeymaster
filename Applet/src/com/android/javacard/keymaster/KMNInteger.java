@@ -67,7 +67,7 @@ public class KMNInteger extends KMInteger {
     }
   }
 
-  public static KMNInteger cast(short ptr) {
+  private static KMNInteger cast(short ptr) {
     byte[] heap = repository.getHeap();
     if (heap[ptr] != NEG_INTEGER_TYPE) {
       ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
