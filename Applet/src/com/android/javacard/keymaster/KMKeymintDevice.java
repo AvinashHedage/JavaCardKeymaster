@@ -1,15 +1,15 @@
 package com.android.javacard.keymaster;
 
-import com.android.javacard.seprovider.KMAndroidSEProvider;
 import com.android.javacard.seprovider.KMAttestationCert;
 import com.android.javacard.seprovider.KMException;
 import com.android.javacard.seprovider.KMSEProvider;
 
 import javacard.framework.Util;
+import javacard.security.CryptoException;
 
-public class KMKeymintApplet extends KMKeymasterApplet {
+public class KMKeymintDevice extends KMKeymasterDevice {
 
-  KMKeymintApplet(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
+  KMKeymintDevice(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
     super(seImpl, repoInst, decoderInst);
   }
   
@@ -78,12 +78,7 @@ public class KMKeymintApplet extends KMKeymasterApplet {
 
   @Override
   public short getKeyCharacteristicsExp() {
-    return KMKeyCharacteristics.exp();
-  }
-
-  @Override
-  public boolean canCreateEarlyBootKeys() {
-    return false;
+    return KMKeyCharacteristics.keymintExp();
   }
 
   @Override
@@ -108,8 +103,19 @@ public class KMKeymintApplet extends KMKeymasterApplet {
   }
 
   @Override
-  public boolean isFactoryAttestationSupported() {
-    return false;
+  public short getSupportedAttestationMode(short attChallenge) {
+	  // Attestation challenge present then it is an error because no factory provisioned attest key
+	  short mode = KMType.NO_CERT; //TODO check what should be the default value
+	  if (attChallenge != KMType.INVALID_VALUE && KMByteBlob.length(attChallenge) > 0) {
+	    KMException.throwIt(KMError.ATTESTATION_KEYS_NOT_PROVISIONED);
+	  }
+	  if(KMEnumArrayTag.contains(KMType.PURPOSE, KMType.ATTEST_KEY, data[HW_PARAMETERS]) ||
+	      KMEnumArrayTag.contains(KMType.PURPOSE, KMType.SIGN, data[HW_PARAMETERS])) {
+	    mode = KMType.SELF_SIGNED_CERT;
+	  }else{
+	    mode = KMType.FAKE_CERT;
+	  }
+	  return mode;
   }
 
   @Override
@@ -184,10 +190,49 @@ public class KMKeymintApplet extends KMKeymasterApplet {
   }
 
   @Override
-  public boolean isKeyAgreementSupported() {
-    return true;
-  }
+  public void beginKeyAgreementOperation(KMOperationState op) {
+    if (op.getAlgorithm() != KMType.EC)
+      KMException.throwIt(KMError.UNSUPPORTED_ALGORITHM);
 
+    op.setOperation(
+        seProvider.initAsymmetricOperation(
+            (byte) op.getPurpose(),
+            (byte)op.getAlgorithm(),
+            (byte)op.getPadding(),
+            (byte)op.getDigest(),
+            KMType.DIGEST_NONE, /* No MGF1 Digest */
+            KMByteBlob.getBuffer(data[SECRET]),
+            KMByteBlob.getStartOff(data[SECRET]),
+            KMByteBlob.length(data[SECRET]),
+            null,
+            (short) 0,
+            (short) 0));
+  }
+  
+  @Override
+  public void finishKeyAgreementOperation(KMOperationState op, byte[] scratchPad) {
+    try {
+      KMPKCS8Decoder pkcs8 = KMPKCS8Decoder.instance();
+      short blob = pkcs8.decodeEcSubjectPublicKeyInfo(data[INPUT_DATA]);
+      short len = op.getOperation().finish(
+          KMByteBlob.getBuffer(blob),
+          KMByteBlob.getStartOff(blob),
+          KMByteBlob.length(blob),
+          scratchPad,
+          (short) 0
+      );
+      data[OUTPUT_DATA] = KMByteBlob.instance((short) 32);
+      Util.arrayCopyNonAtomic(
+          scratchPad,
+          (short) 0,
+          KMByteBlob.getBuffer(data[OUTPUT_DATA]),
+          KMByteBlob.getStartOff(data[OUTPUT_DATA]),
+          len);
+    } catch (CryptoException e) {
+      KMException.throwIt(KMError.INVALID_ARGUMENT);
+    }
+  }
+ 
   @Override
   public short getConfirmationToken(short confToken, short keyParams) {
     if (0 == KMByteBlob.length(confToken)) {
@@ -198,7 +243,7 @@ public class KMKeymintApplet extends KMKeymasterApplet {
 
   @Override
   public short getKMVerificationTokenExp() {
-    return KMVerificationToken.exp1();
+    return KMVerificationToken.timeStampTokenExp();
   }
 
   @Override

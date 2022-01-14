@@ -82,8 +82,8 @@ public class KMEncoder {
     bufferRef[0] = buffer;
     scratchBuf[START_OFFSET] = startOff;
     short len = (short) (buffer.length - startOff);
-    if ((len < 0) || len > KMKeymasterApplet.MAX_LENGTH) {
-      scratchBuf[LEN_OFFSET] = KMKeymasterApplet.MAX_LENGTH;
+    if ((len < 0) || len > KMKeymasterDevice.MAX_LENGTH) {
+      scratchBuf[LEN_OFFSET] = KMKeymasterDevice.MAX_LENGTH;
     } else {
       scratchBuf[LEN_OFFSET] = (short) buffer.length;
     }

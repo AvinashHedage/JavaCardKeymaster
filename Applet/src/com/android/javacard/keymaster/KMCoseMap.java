@@ -127,8 +127,8 @@ public abstract class KMCoseMap extends KMType {
       firstKey = KMMap.getKey(ptr, index);
       secondKey = KMMap.getKey(ptr, (short) (index + 1));
     }
-    firstKeyLen = KMKeymasterApplet.encoder.encode(firstKey, scratchpad, (short) 0);
-    secondKeyLen = KMKeymasterApplet.encoder.encode(secondKey, scratchpad, firstKeyLen);
+    firstKeyLen = KMKeymasterDevice.encoder.encode(firstKey, scratchpad, (short) 0);
+    secondKeyLen = KMKeymasterDevice.encoder.encode(secondKey, scratchpad, firstKeyLen);
     if ((firstKeyLen > secondKeyLen) ||
         ((firstKeyLen == secondKeyLen) &&
             (0 < Util.arrayCompare(scratchpad, (short) 0, scratchpad, firstKeyLen, firstKeyLen)))) {

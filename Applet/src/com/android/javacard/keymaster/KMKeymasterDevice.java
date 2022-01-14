@@ -16,8 +16,6 @@
 
 package com.android.javacard.keymaster;
 
-import static com.android.javacard.keymaster.KMKeymasterApplet.seProvider;
-
 import com.android.javacard.seprovider.KMAttestationCert;
 import com.android.javacard.seprovider.KMDeviceUniqueKey;
 import com.android.javacard.seprovider.KMException;
@@ -34,7 +32,7 @@ import javacard.security.CryptoException;
  * objects. It also implements the keymaster state machine and handles javacard applet life cycle
  * events.
  */
-public class KMKeymasterApplet {
+public class KMKeymasterDevice {
 
   // Constants.
   public static final byte[] F4 = {0x01, 0x00, 0x01};
@@ -223,7 +221,7 @@ public class KMKeymasterApplet {
   /**
    * Registers this applet.
    */
-  protected KMKeymasterApplet(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
+  protected KMKeymasterDevice(KMSEProvider seImpl, KMRepository repoInst, KMDecoder decoderInst) {
     seProvider = seImpl;
     boolean isUpgrading = seProvider.isUpgrading();
     if (!isUpgrading) {
@@ -253,7 +251,7 @@ public class KMKeymasterApplet {
   }
   
   public void clean() {
-	  repository.clean();
+	repository.clean();
   }
   
   protected void initHmacNonceAndSeed(){
@@ -385,9 +383,11 @@ public class KMKeymasterApplet {
    */
   public void process(APDU apdu) {
     try {
+      resetData();
       repository.onProcess();
       // Validate APDU Header.
       short apduIns = validateApduHeader(apdu);
+      
       switch (apduIns) {
         case INS_INIT_STRONGBOX_CMD:
           processInitStrongBoxCmd(apdu);
@@ -498,8 +498,7 @@ public class KMKeymasterApplet {
       freeOperations();
       resetWrappingKey();
       sendError(apdu, KMError.GENERIC_UNKNOWN_ERROR);
-    } finally {
-      resetData();
+    } finally {      
       repository.clean();
     }
   }
@@ -723,12 +722,12 @@ public class KMKeymasterApplet {
 
   private short keyBlob(){
     short keyBlob = KMArray.instance((short) 5);
-    KMArray.add(keyBlob, KMKeymasterApplet.KEY_BLOB_SECRET, KMByteBlob.exp());
-    KMArray.add(keyBlob, KMKeymasterApplet.KEY_BLOB_AUTH_TAG, KMByteBlob.exp());
-    KMArray.add(keyBlob, KMKeymasterApplet.KEY_BLOB_NONCE, KMByteBlob.exp());
+    KMArray.add(keyBlob, KMKeymasterDevice.KEY_BLOB_SECRET, KMByteBlob.exp());
+    KMArray.add(keyBlob, KMKeymasterDevice.KEY_BLOB_AUTH_TAG, KMByteBlob.exp());
+    KMArray.add(keyBlob, KMKeymasterDevice.KEY_BLOB_NONCE, KMByteBlob.exp());
     short keyChar = getKeyCharacteristicsExp();
-    KMArray.add(keyBlob, KMKeymasterApplet.KEY_BLOB_PARAMS, keyChar);
-    KMArray.add(keyBlob, KMKeymasterApplet.KEY_BLOB_PUB_KEY, KMByteBlob.exp());
+    KMArray.add(keyBlob, KMKeymasterDevice.KEY_BLOB_PARAMS, keyChar);
+    KMArray.add(keyBlob, KMKeymasterDevice.KEY_BLOB_PUB_KEY, KMByteBlob.exp());
     return keyBlob;
   }
 
@@ -1470,11 +1469,7 @@ public class KMKeymasterApplet {
         finishDecryptOperation(op, scratchPad);
         break;
       case KMType.AGREE_KEY:
-	    if(isKeyAgreementSupported()) {
-		  finishKeyAgreementOperation(op, scratchPad);  
-    	} else {
-    	  KMException.throwIt(KMError.UNIMPLEMENTED);
-    	}
+		finishKeyAgreementOperation(op, scratchPad);  
         break;
     }
     if (data[OUTPUT_DATA] == KMType.INVALID_VALUE) {
@@ -1567,27 +1562,8 @@ public class KMKeymasterApplet {
     KMByteBlob.setLength(data[OUTPUT_DATA], len);
   }
 
-  private void finishKeyAgreementOperation(KMOperationState op, byte[] scratchPad) {
-    try {
-      KMPKCS8Decoder pkcs8 = KMPKCS8Decoder.instance();
-      short blob = pkcs8.decodeEcSubjectPublicKeyInfo(data[INPUT_DATA]);
-      short len = op.getOperation().finish(
-          KMByteBlob.getBuffer(blob),
-          KMByteBlob.getStartOff(blob),
-          KMByteBlob.length(blob),
-          scratchPad,
-          (short) 0
-      );
-      data[OUTPUT_DATA] = KMByteBlob.instance((short) 32);
-      Util.arrayCopyNonAtomic(
-          scratchPad,
-          (short) 0,
-          KMByteBlob.getBuffer(data[OUTPUT_DATA]),
-          KMByteBlob.getStartOff(data[OUTPUT_DATA]),
-          len);
-    } catch (CryptoException e) {
-      KMException.throwIt(KMError.INVALID_ARGUMENT);
-    }
+  public void finishKeyAgreementOperation(KMOperationState op, byte[] scratchPad) {
+	  KMException.throwIt(KMError.UNIMPLEMENTED); 
   }
 
   private void finishSigningVerifyingOperation(KMOperationState op, byte[] scratchPad) {
@@ -2110,11 +2086,7 @@ public class KMKeymasterApplet {
         beginCipherOperation(op);
         break;
       case KMType.AGREE_KEY:
-    	if(isKeyAgreementSupported()) {
-          beginKeyAgreementOperation(op);  
-    	} else {
-    	  KMException.throwIt(KMError.UNIMPLEMENTED);
-    	}
+    	beginKeyAgreementOperation(op);  
         break;
       default:
         KMException.throwIt(KMError.UNIMPLEMENTED);
@@ -2466,23 +2438,8 @@ public class KMKeymasterApplet {
     }
   }
 
-  private void beginKeyAgreementOperation(KMOperationState op) {
-    if (op.getAlgorithm() != KMType.EC)
-      KMException.throwIt(KMError.UNSUPPORTED_ALGORITHM);
-
-    op.setOperation(
-        seProvider.initAsymmetricOperation(
-            (byte) op.getPurpose(),
-            (byte)op.getAlgorithm(),
-            (byte)op.getPadding(),
-            (byte)op.getDigest(),
-            KMType.DIGEST_NONE, /* No MGF1 Digest */
-            KMByteBlob.getBuffer(data[SECRET]),
-            KMByteBlob.getStartOff(data[SECRET]),
-            KMByteBlob.length(data[SECRET]),
-            null,
-            (short) 0,
-            (short) 0));
+  public void beginKeyAgreementOperation(KMOperationState op) {
+	KMException.throwIt(KMError.UNIMPLEMENTED);
   }
 
   private void beginCipherOperation(KMOperationState op) {
@@ -3435,11 +3392,7 @@ public class KMKeymasterApplet {
     // BOOTLOADER_ONLY keys not supported.
     KMTag.assertAbsence(data[KEY_PARAMETERS], KMType.BOOL_TAG, KMType.BOOTLOADER_ONLY, KMError.INVALID_KEY_BLOB);
     // As per specification Early boot keys may be created after early boot ended.
-    if (!canCreateEarlyBootKeys() && repository.getEarlyBootEndedStatus()) {
-      //Validate early boot
-      KMTag.assertAbsence(data[KEY_PARAMETERS], KMType.BOOL_TAG, KMType.EARLY_BOOT_ONLY,
-            KMError.INVALID_KEY_BLOB);
-    }
+    validateEarlyBoot();
     // Algorithm must be present
     KMTag.assertPresence(data[KEY_PARAMETERS], KMType.ENUM_TAG, KMType.ALGORITHM, KMError.INVALID_ARGUMENT);
     short alg = KMEnumTag.getValue(KMType.ALGORITHM, data[KEY_PARAMETERS]);
@@ -3609,7 +3562,7 @@ public class KMKeymasterApplet {
         KMEnumTag.getValue(alg) != KMType.EC){
       return mode;
     }
-    // If attestation keyblob preset
+    // If attestation keyblob present
     if (attKeyBlob != KMType.INVALID_VALUE && KMByteBlob.length(attKeyBlob) > 0) {
       // No attestation challenge present then it is an error
       if (attChallenge == KMType.INVALID_VALUE || KMByteBlob.length(attChallenge) <= 0) {
@@ -3617,18 +3570,8 @@ public class KMKeymasterApplet {
       } else {
         mode = KMType.ATTESTATION_CERT;
       }
-    } else if (isFactoryAttestationSupported()) {
-      mode = KMType.FACTORY_PROVISIONED_ATTEST_CERT;
-    } else { // no attestation key blob
-      // Attestation challenge present then it is an error because no factory provisioned attest key
-      if (attChallenge != KMType.INVALID_VALUE && KMByteBlob.length(attChallenge) > 0) {
-        KMException.throwIt(KMError.ATTESTATION_KEYS_NOT_PROVISIONED);
-      } else if(KMEnumArrayTag.contains(KMType.PURPOSE, KMType.ATTEST_KEY, data[HW_PARAMETERS]) ||
-          KMEnumArrayTag.contains(KMType.PURPOSE, KMType.SIGN, data[HW_PARAMETERS])) {
-        mode = KMType.SELF_SIGNED_CERT;
-      }else{
-        mode = KMType.FAKE_CERT;
-      }
+    } else {
+      mode = getSupportedAttestationMode(attChallenge);
     }
     return mode;
   }
@@ -4254,8 +4197,8 @@ public class KMKeymasterApplet {
               KMArray.get(ptr1, KMCose.COSE_SIGN1_PROTECTED_PARAMS_OFFSET),
               KMByteBlob.instance((short) 0),
               KMArray.get(ptr1, KMCose.COSE_SIGN1_PAYLOAD_OFFSET));
-      encodedLen = KMKeymasterApplet.encodeToApduBuffer(signStructure, scratchPad,
-          keySize, KMKeymasterApplet.MAX_COSE_BUF_SIZE);
+      encodedLen = KMKeymasterDevice.encodeToApduBuffer(signStructure, scratchPad,
+          keySize, KMKeymasterDevice.MAX_COSE_BUF_SIZE);
 
       if (!seProvider.ecVerify256(scratchPad, (short) 0, keySize, scratchPad, keySize, encodedLen,
           KMByteBlob.getBuffer(KMArray.get(ptr1, KMCose.COSE_SIGN1_SIGNATURE_OFFSET)),
@@ -4288,8 +4231,8 @@ public class KMKeymasterApplet {
             KMType.INVALID_VALUE,
             false
         );
-    temp = KMKeymasterApplet.encodeToApduBuffer(coseKey, scratchPad, (short) 0,
-        KMKeymasterApplet.MAX_COSE_BUF_SIZE);
+    temp = KMKeymasterDevice.encodeToApduBuffer(coseKey, scratchPad, (short) 0,
+        KMKeymasterDevice.MAX_COSE_BUF_SIZE);
     // Construct payload.
     short payload =
     	kmCoseInst.constructCoseCertPayload(
@@ -4306,8 +4249,8 @@ public class KMKeymasterApplet {
                     (short) KMCose.KEY_USAGE_SIGN.length))
         );
     // temp temporarily holds the length of encoded cert payload.
-    temp = KMKeymasterApplet.encodeToApduBuffer(payload, scratchPad, (short) 0,
-        KMKeymasterApplet.MAX_COSE_BUF_SIZE);
+    temp = KMKeymasterDevice.encodeToApduBuffer(payload, scratchPad, (short) 0,
+        KMKeymasterDevice.MAX_COSE_BUF_SIZE);
     payload = KMByteBlob.instance(scratchPad, (short) 0, temp);
 
     // protected header
@@ -4315,8 +4258,8 @@ public class KMKeymasterApplet {
         kmCoseInst.constructHeaders(KMNInteger.uint_8(KMCose.COSE_ALG_ES256), KMType.INVALID_VALUE,
             KMType.INVALID_VALUE, KMType.INVALID_VALUE);
     // temp temporarily holds the length of encoded headers.
-    temp = KMKeymasterApplet.encodeToApduBuffer(protectedHeader, scratchPad, (short) 0,
-        KMKeymasterApplet.MAX_COSE_BUF_SIZE);
+    temp = KMKeymasterDevice.encodeToApduBuffer(protectedHeader, scratchPad, (short) 0,
+        KMKeymasterDevice.MAX_COSE_BUF_SIZE);
     protectedHeader = KMByteBlob.instance(scratchPad, (short) 0, temp);
 
     //unprotected headers.
@@ -4328,8 +4271,8 @@ public class KMKeymasterApplet {
     	kmCoseInst.constructCoseSignStructure(protectedHeader, KMByteBlob.instance((short) 0), payload);
     // temp temporarily holds the length of encoded sign structure.
     // Encode cose Sign_Structure.
-    temp = KMKeymasterApplet.encodeToApduBuffer(coseSignStructure, scratchPad, (short) 0,
-        KMKeymasterApplet.MAX_COSE_BUF_SIZE);
+    temp = KMKeymasterDevice.encodeToApduBuffer(coseSignStructure, scratchPad, (short) 0,
+        KMKeymasterDevice.MAX_COSE_BUF_SIZE);
     // do sign
     short len =
         seProvider.ecSign256(
@@ -4409,11 +4352,15 @@ public class KMKeymasterApplet {
   }
 
   public short getKeyCharacteristicsExp() {
-    return KMKeyCharacteristics.exp2();
+    return KMKeyCharacteristics.keymasterExp();
   }
 
-  public boolean canCreateEarlyBootKeys() {
-    return false;
+  public void validateEarlyBoot() {
+    if (repository.getEarlyBootEndedStatus()) {
+	  //Validate early boot
+	  KMTag.assertAbsence(data[KEY_PARAMETERS], KMType.BOOL_TAG, KMType.EARLY_BOOT_ONLY,
+	          KMError.INVALID_KEY_BLOB);
+	}
   }
 
   public short getHardwareParamters(short sbParams, short teeParams) {
@@ -4436,8 +4383,8 @@ public class KMKeymasterApplet {
     return params;
   }
 
-  public boolean isFactoryAttestationSupported() {
-    return true;
+  public short getSupportedAttestationMode(short attChallenge) {
+    return KMType.FACTORY_PROVISIONED_ATTEST_CERT;
   }
 
   public KMAttestationCert makeCommonCert(short swParams, short hwParams, short keyParams,
@@ -4477,10 +4424,6 @@ public class KMKeymasterApplet {
     return cert;
   }
 
-  public boolean isKeyAgreementSupported() {
-    return false;
-  }
-
   private short getProvisionedCertificateData(KMSEProvider kmseProvider, byte dataType) {
     short len = seProvider.getProvisionedDataLength(dataType);
     if (len == 0) {
@@ -4504,7 +4447,7 @@ public class KMKeymasterApplet {
   }
 
   public short getKMVerificationTokenExp() {
-    return KMVerificationToken.exp2();
+    return KMVerificationToken.verificationTokenExp();
   }
 
   public short getMacFromVerificationToken(short verToken) {

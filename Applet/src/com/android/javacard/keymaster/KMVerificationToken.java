@@ -41,7 +41,7 @@ public class KMVerificationToken extends KMType {
   private KMVerificationToken() {
   }
 
-  public static short exp1() {
+  public static short timeStampTokenExp() {
     short arrPtr = KMArray.instance((short) 3);
     KMArray.add(arrPtr, CHALLENGE, KMInteger.exp());
     KMArray.add(arrPtr, TIMESTAMP, KMInteger.exp());
@@ -49,7 +49,7 @@ public class KMVerificationToken extends KMType {
     return instance(arrPtr);
   }
   
-  public static short exp2() {
+  public static short verificationTokenExp() {
     short arrPtr = KMArray.instance((short) 5);
     KMArray.add(arrPtr, CHALLENGE, KMInteger.exp());
     KMArray.add(arrPtr, TIMESTAMP, KMInteger.exp());

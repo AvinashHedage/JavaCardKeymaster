@@ -36,7 +36,7 @@ public class KMKeyCharacteristics extends KMType {
   private KMKeyCharacteristics() {
   }
 
-  public static short exp2() {
+  public static short keymasterExp() {
     short sb = KMKeyParameters.exp();
     short keystore = KMKeyParameters.exp();
     short arrPtr = KMArray.instance((short) 2);
@@ -46,7 +46,7 @@ public class KMKeyCharacteristics extends KMType {
     return instance(arrPtr);
   }
 
-  public static short exp() {
+  public static short keymintExp() {
     short sb = KMKeyParameters.exp();
     short tee = KMKeyParameters.exp();
     short keystore = KMKeyParameters.exp();
