@@ -32,12 +32,15 @@ import javacard.framework.Util;
  */
 public class KMRepository {
 
-  public static final short HEAP_SIZE = 10000;
+  public static final short HEAP_SIZE = 9000;
 
   // Class Attributes
   private byte[] heap;
   private short[] heapIndex;
   private short reclaimIndex;
+  
+  //used for heap profiling
+  public static short maxHeapUsage= 0;
 
   // Singleton instance
   private static KMRepository repository;
@@ -114,5 +117,19 @@ public class KMRepository {
   public byte[] getHeap() {
     return heap;
   }
+  
+  public short getHeapIndex() {
+    return heapIndex[0];
+  }
 
+  public void updateHeapProfileData(short size) {
+    if(size > maxHeapUsage) {
+    	maxHeapUsage = size;
+    }
+  }
+  
+  public short getMaxHeapUsed() {
+	  return maxHeapUsage;
+  }
+  
 }
