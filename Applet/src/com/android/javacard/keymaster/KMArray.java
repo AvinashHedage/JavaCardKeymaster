@@ -92,6 +92,12 @@ public class KMArray extends KMType {
       (short) (instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + ARRAY_HEADER_SIZE + (short) (index * 2)),
       objPtr);
   }
+  
+  public void deleteLastEntry() {
+    short len = length();
+    Util.setShort(heap, (short) (instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + 2), (short) (len -1));
+  }
+
 
   public short get(short index) {
     short len = length();
@@ -114,6 +120,11 @@ public class KMArray extends KMType {
     return Util.getShort(heap, (short) (instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + 2));
   }
 
+  public short setLength(short len) {
+    return Util.setShort(heap,
+	        (short) (KMType.instanceTable[KM_ARRAY_OFFSET] + TLV_HEADER_SIZE + 2), len);
+  }
+  
   public byte[] getBuffer() {
     return heap;
   }

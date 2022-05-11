@@ -115,8 +115,8 @@ public class KMAndroidSEApplet extends KMKeymasterApplet implements OnUpgradeLis
         upgradeAllowed = true;
       }
     } else if ((short) (currentMajorVersion - oldMajorVersion) == 0) {
-      if ((short) (currentMinorVersion - oldMinorVersion) == 1) {
-        upgradeAllowed = true;
+    	if (currentMinorVersion >= oldMinorVersion) {
+          upgradeAllowed = true;
       }
     }
     return upgradeAllowed;

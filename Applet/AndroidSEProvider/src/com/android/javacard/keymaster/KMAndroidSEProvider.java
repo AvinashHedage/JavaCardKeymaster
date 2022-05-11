@@ -18,6 +18,15 @@ package com.android.javacard.keymaster;
 import org.globalplatform.upgrade.Element;
 import org.globalplatform.upgrade.UpgradeManager;
 
+import com.android.javacard.keymaster.KMAESKey;
+import com.android.javacard.keymaster.KMAttestationKey;
+import com.android.javacard.keymaster.KMECPrivateKey;
+import com.android.javacard.keymaster.KMError;
+import com.android.javacard.keymaster.KMException;
+import com.android.javacard.keymaster.KMHmacKey;
+import com.android.javacard.keymaster.KMMasterKey;
+import com.android.javacard.keymaster.KMPreSharedKey;
+
 import javacard.framework.JCSystem;
 import javacard.framework.Util;
 import javacard.security.AESKey;
@@ -35,15 +44,6 @@ import javacard.security.RandomData;
 import javacard.security.Signature;
 import javacardx.crypto.AEADCipher;
 import javacardx.crypto.Cipher;
-
-import com.android.javacard.keymaster.KMAESKey;
-import com.android.javacard.keymaster.KMAttestationKey;
-import com.android.javacard.keymaster.KMECPrivateKey;
-import com.android.javacard.keymaster.KMError;
-import com.android.javacard.keymaster.KMException;
-import com.android.javacard.keymaster.KMHmacKey;
-import com.android.javacard.keymaster.KMMasterKey;
-import com.android.javacard.keymaster.KMPreSharedKey;
 
 public class KMAndroidSEProvider implements KMSEProvider {
 
@@ -221,12 +221,12 @@ public class KMAndroidSEProvider implements KMSEProvider {
     // Re-usable AES,DES and HMAC keys in persisted memory.
     aesKeys = new AESKey[2];
     aesKeys[KEYSIZE_128_OFFSET] = (AESKey) KeyBuilder.buildKey(
-        KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_128, false);
+        KeyBuilder.TYPE_AES_TRANSIENT_RESET, KeyBuilder.LENGTH_AES_128, false);
     aesKeys[KEYSIZE_256_OFFSET] = (AESKey) KeyBuilder.buildKey(
-        KeyBuilder.TYPE_AES, KeyBuilder.LENGTH_AES_256, false);
-    triDesKey = (DESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_DES,
+        KeyBuilder.TYPE_AES_TRANSIENT_RESET, KeyBuilder.LENGTH_AES_256, false);
+    triDesKey = (DESKey) KeyBuilder.buildKey(KeyBuilder.TYPE_DES_TRANSIENT_RESET,
         KeyBuilder.LENGTH_DES3_3KEY, false);
-    hmacKey = (HMACKey) KeyBuilder.buildKey(KeyBuilder.TYPE_HMAC, (short) 512,
+    hmacKey = (HMACKey) KeyBuilder.buildKey(KeyBuilder.TYPE_HMAC_TRANSIENT_RESET, (short) 512,
         false);
     rsaKeyPair = new KeyPair(KeyPair.ALG_RSA, KeyBuilder.LENGTH_RSA_2048);
     ecKeyPair = new KeyPair(KeyPair.ALG_EC_FP, KeyBuilder.LENGTH_EC_FP_256);

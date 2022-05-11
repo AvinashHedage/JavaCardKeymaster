@@ -351,6 +351,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
   @Override
   public void process(APDU apdu) {
     try {
+      resetData();
       // Handle the card reset status before processing apdu.
       if (repository.isPowerResetEventOccurred()) {
         // Release all the operation instances.
@@ -546,7 +547,6 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
       freeOperations();
       sendError(apdu, KMError.GENERIC_UNKNOWN_ERROR);
     } finally {
-      resetData();
       repository.clean();
     }
   }
@@ -932,6 +932,9 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
       tmpVariables[0] = KMKeyParameters.findTag(KMType.BYTES_TAG, attTag, data[KEY_PARAMETERS]);
       if (tmpVariables[0] != KMType.INVALID_VALUE) {
         tmpVariables[0] = KMByteTag.cast(tmpVariables[0]).getValue();
+        if (KMByteBlob.cast(tmpVariables[0]).length() > KMConfigurations.MAX_ATTESTATION_IDS_SIZE) {
+          KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+        }
         repository.persistAttId(
             mapToAttId(attTag),
             KMByteBlob.cast(tmpVariables[0]).getBuffer(),
@@ -985,6 +988,11 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
     data[KEY_BLOB] = KMArray.cast(tmpVariables[0]).get((short) 0);
     data[APP_ID] = KMArray.cast(tmpVariables[0]).get((short) 1);
     data[APP_DATA] = KMArray.cast(tmpVariables[0]).get((short) 2);
+
+    if (KMByteBlob.cast(data[APP_ID]).length() > KMByteTag.MAX_APP_ID_APP_DATA_SIZE
+    		|| KMByteBlob.cast(data[APP_DATA]).length() > KMByteTag.MAX_APP_ID_APP_DATA_SIZE) {
+      KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+    }
     if (!KMByteBlob.cast(data[APP_ID]).isValid()) {
       data[APP_ID] = KMType.INVALID_VALUE;
     }
@@ -1582,14 +1590,14 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
                     KMByteBlob.cast(storedAttId).length())) {
           KMException.throwIt(KMError.CANNOT_ATTEST_IDS);
         }
-        // Return INVALID_TAG if Attestation IDs does not match.
+        // Return CANNOT_ATTEST_IDS if Attestation IDs does not match.
         if ((KMByteBlob.cast(storedAttId).length() != KMByteBlob.cast(attIdTagValue).length()) ||
             (0 != Util.arrayCompare(KMByteBlob.cast(storedAttId).getBuffer(),
                                     KMByteBlob.cast(storedAttId).getStartOff(),
                                     KMByteBlob.cast(attIdTagValue).getBuffer(),
                                     KMByteBlob.cast(attIdTagValue).getStartOff(),
                                     KMByteBlob.cast(storedAttId).length()))) {
-          KMException.throwIt(KMError.INVALID_TAG);
+          KMException.throwIt(KMError.CANNOT_ATTEST_IDS);
         }
         cert.extensionTag(attIdTag, true);
       }
@@ -2439,7 +2447,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
         KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.PADDING, data[KEY_PARAMETERS]);
     if (param != KMType.INVALID_VALUE) {
       if (KMEnumArrayTag.cast(param).length() != 1) {
-        KMException.throwIt(KMError.INVALID_ARGUMENT);
+        KMException.throwIt(KMError.UNSUPPORTED_PADDING_MODE);
       }
       param = KMEnumArrayTag.cast(param).get((short) 0);
       if (!KMEnumArrayTag.cast(paddings).contains(param)) {
@@ -3327,7 +3335,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
     }
     if(Util.arrayCompare(F4, (short)0, KMByteBlob.cast(pubKeyExp).getBuffer(),
         KMByteBlob.cast(pubKeyExp).getStartOff(), (short)F4.length) != 0) {
-      KMException.throwIt(KMError.INVALID_ARGUMENT);
+      KMException.throwIt(KMError.IMPORT_PARAMETER_MISMATCH);
     }
     tmpVariables[4] = 0; // index in scratchPad for update parameters.
     // validate public exponent if present in key params - it must be 0x010001
@@ -3765,10 +3773,6 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
     tmpVariables[0] =
         KMKeyParameters.findTag(KMType.ENUM_ARRAY_TAG, KMType.DIGEST, data[KEY_PARAMETERS]);
     if (KMType.INVALID_VALUE == tmpVariables[0]) {
-      KMException.throwIt(KMError.UNSUPPORTED_DIGEST);
-    }
-
-    if (KMEnumArrayTag.contains(KMType.DIGEST, KMType.DIGEST_NONE, data[KEY_PARAMETERS])) {
       KMException.throwIt(KMError.UNSUPPORTED_DIGEST);
     }
     // Strongbox supports only SHA256.

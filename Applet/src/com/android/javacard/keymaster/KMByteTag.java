@@ -74,15 +74,8 @@ public class KMByteTag extends KMTag {
     return ptr;
   }
 
-  public static short instance(short key) {
-    if (!validateKey(key)) {
-      ISOException.throwIt(ISO7816.SW_DATA_INVALID);
-    }
-    return instance(key, KMByteBlob.exp());
-  }
-
   public static short instance(short key, short byteBlob) {
-    if (!validateKey(key)) {
+    if (!validateKey(key, byteBlob)) {
       ISOException.throwIt(ISO7816.SW_DATA_INVALID);
     }
     if (heap[byteBlob] != BYTE_BLOB_TYPE) {
@@ -122,13 +115,50 @@ public class KMByteTag extends KMTag {
     return KMByteBlob.cast(blobPtr).length();
   }
 
-  private static boolean validateKey(short key) {
-    short index = (short) tags.length;
-    while (--index >= 0) {
-      if (tags[index] == key) {
-        return true;
-      }
+  private static boolean validateKey(short key, short byteBlob) {
+    short valueLen = KMByteBlob.cast(byteBlob).length();
+    switch(key) {
+      case APPLICATION_ID:
+      case APPLICATION_DATA:
+	    if (valueLen > MAX_APP_ID_APP_DATA_SIZE) {
+	      KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+        }
+        break;
+      case ROOT_OF_TRUST:
+      case UNIQUE_ID:
+    	break;
+      case ATTESTATION_CHALLENGE:
+	    if (valueLen > MAX_ATTESTATION_CHALLENGE_SIZE) {
+	      KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+        }
+        break;
+      case ATTESTATION_APPLICATION_ID:
+	    if (valueLen > MAX_ATTESTATION_APP_ID_SIZE) {
+	      KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+        }
+        break;	  
+      case ATTESTATION_ID_BRAND:
+      case ATTESTATION_ID_DEVICE:
+      case ATTESTATION_ID_PRODUCT:
+      case ATTESTATION_ID_SERIAL:
+      case ATTESTATION_ID_IMEI:
+      case ATTESTATION_ID_MEID:
+      case ATTESTATION_ID_MANUFACTURER:
+      case ATTESTATION_ID_MODEL:
+	    if (valueLen > KMConfigurations.MAX_ATTESTATION_IDS_SIZE) {
+	      KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
+        }
+        break;
+      case ASSOCIATED_DATA:
+      case NONCE:
+      case CONFIRMATION_TOKEN:
+      case VERIFIED_BOOT_KEY:
+      case VERIFIED_BOOT_HASH:
+        break;
+      default:
+    	return false;
+    	 
     }
-    return false;
+    return true;
   }
 }
