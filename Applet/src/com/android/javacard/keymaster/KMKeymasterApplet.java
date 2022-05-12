@@ -46,7 +46,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
   // Magic number version
   public static final byte KM_MAGIC_NUMBER = (byte) 0x81;
   // MSB byte is for Major version and LSB byte is for Minor version.
-  public static final short CURRENT_PACKAGE_VERSION = 0x0200; // 2.0
+  public static final short CURRENT_PACKAGE_VERSION = 0x0201; // 2.1
 
   // "Keymaster HMAC Verification" - used for HMAC key verification.
   public static final byte[] sharingCheck = {
@@ -579,6 +579,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
 
   private void processEarlyBootEndedCmd(APDU apdu) {
     repository.setEarlyBootEndedStatus(true);
+    sendError(apdu, KMError.OK);
   }
 
   private void processDeviceLockedCmd(APDU apdu) {
@@ -4126,7 +4127,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
     data[AUTH_DATA] = authIndex;
     data[AUTH_DATA_LENGTH] = len;
   }
-  
+
   private static short deriveKey(byte[] scratchPad) {
     // KeyDerivation:
     // 1. Do HMAC Sign, Auth data.
@@ -4305,6 +4306,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
     short index = 0;
     short tag;
     short systemParam;
+    boolean isKeyUpgradeRequired = false;
     while(index < 16) {
       tag = Util.getShort(scratchPad, index);
       systemParam = Util.getShort(scratchPad, (short) (index + 2));
@@ -4319,12 +4321,12 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
             && KMInteger.compare(tagValue, systemParam) == 1
             && KMInteger.compare(systemParam, zero) == 0)) {
           // Key needs upgrade.
-          return true;
+          isKeyUpgradeRequired = true;
         } else if ((KMInteger.compare(tagValue, systemParam) == -1)) {
           // Each os version or patch level associated with the key must be less than it's
           // corresponding value stored in Javacard, then only upgrade is allowed otherwise it
           // is invalid argument.
-          return true;
+          isKeyUpgradeRequired = true;
         } else if (KMInteger.compare(tagValue, systemParam) == 1) {
           KMException.throwIt(KMError.INVALID_ARGUMENT);
         }
@@ -4333,7 +4335,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
       }
       index += 4;
     }
-    return false;
+    return isKeyUpgradeRequired;
   }
 
   private short readKeyBlobVersion(short keyBlob) {
