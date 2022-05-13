@@ -78,8 +78,7 @@ public class KMAttestationCertImpl implements KMAttestationCert {
       KMType.USAGE_EXPIRE_DATETIME,
       KMType.ORIGINATION_EXPIRE_DATETIME,
       KMType.ACTIVE_DATETIME,
-      KMType.UNLOCKED_DEVICE_REQUIRED,
-      KMType.ALLOW_WHILE_ON_BODY
+      KMType.UNLOCKED_DEVICE_REQUIRED
   };
 
   // Below are the allowed hardwareEnforced Authorization tags inside the attestation certificate's extension.

@@ -933,9 +933,6 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
       tmpVariables[0] = KMKeyParameters.findTag(KMType.BYTES_TAG, attTag, data[KEY_PARAMETERS]);
       if (tmpVariables[0] != KMType.INVALID_VALUE) {
         tmpVariables[0] = KMByteTag.cast(tmpVariables[0]).getValue();
-        if (KMByteBlob.cast(tmpVariables[0]).length() > KMConfigurations.MAX_ATTESTATION_IDS_SIZE) {
-          KMException.throwIt(KMError.INVALID_INPUT_LENGTH);
-        }
         repository.persistAttId(
             mapToAttId(attTag),
             KMByteBlob.cast(tmpVariables[0]).getBuffer(),
@@ -1493,8 +1490,7 @@ public class KMKeymasterApplet extends Applet implements AppletEvent, ExtendedLe
         (short) 0);
 
     addTags(KMKeyCharacteristics.cast(data[KEY_CHARACTERISTICS]).getHardwareEnforced(), true, cert);
-    addTags(
-        KMKeyCharacteristics.cast(data[KEY_CHARACTERISTICS]).getSoftwareEnforced(), false, cert);
+    addTags(KMKeyCharacteristics.cast(data[KEY_CHARACTERISTICS]).getSoftwareEnforced(), false, cert);
 
     cert.deviceLocked(repository.getBootLoaderLock());
     cert.issuer(getProvisionedCertificateData(KMSEProvider.CERTIFICATE_ISSUER));
