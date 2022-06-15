@@ -184,13 +184,13 @@ public class KMPoolManager {
 	  }
   
   private KMPoolManager() {
-	initStatics();  
-    cipherPool = new Object[(short) (CIPHER_ALGS.length * 4)];
+    initStatics();  
+    cipherPool = new Object[(short) (CIPHER_ALGS.length * MAX_OPERATION_INSTANCES)];
     // Extra 4 algorithms are used to support TRUSTED_CONFIRMATION_REQUIRED feature.
-    signerPool = new Object[(short) ((SIG_ALGS.length * 4) + 4)];
-    keyAgreementPool = new Object[(short) (KEY_AGREE_ALGS.length * 4)];
+    signerPool = new Object[(short) ((SIG_ALGS.length * MAX_OPERATION_INSTANCES) + MAX_OPERATION_INSTANCES)];
+    keyAgreementPool = new Object[(short) (KEY_AGREE_ALGS.length * MAX_OPERATION_INSTANCES)];
     
-    keysPool = new Object[(short) ((KEY_ALGS.length * 4) + 4)];
+    keysPool = new Object[(short) ((KEY_ALGS.length * MAX_OPERATION_INSTANCES) + MAX_OPERATION_INSTANCES)];
     operationPool = new Object[MAX_OPERATION_INSTANCES];
     hmacSignOperationPool = new Object[MAX_OPERATION_INSTANCES];
     /* Initialize pools */
