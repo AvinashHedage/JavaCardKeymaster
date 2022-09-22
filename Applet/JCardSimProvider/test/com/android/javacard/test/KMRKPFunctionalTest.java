@@ -26,11 +26,13 @@ import com.android.javacard.keymaster.KMCosePairByteBlobTag;
 import com.android.javacard.keymaster.KMCosePairIntegerTag;
 import com.android.javacard.keymaster.KMCosePairNegIntegerTag;
 import com.android.javacard.keymaster.KMCosePairSimpleValueTag;
+import com.android.javacard.keymaster.KMMap;
 import com.android.javacard.keymaster.KMNInteger;
 import com.android.javacard.keymaster.KMRepository;
 import com.android.javacard.keymaster.KMSimpleValue;
 import com.android.javacard.keymaster.KMJCardSimApplet;
 import com.android.javacard.keymaster.KMKeymasterApplet;
+import com.android.javacard.keymaster.KMTextString;
 import com.android.javacard.seprovider.KMJCardSimulator;
 import com.android.javacard.seprovider.KMSEProvider;
 import com.android.javacard.keymaster.KMDecoder;
@@ -513,7 +515,6 @@ public class KMRKPFunctionalTest {
       
       resp = response.getBytes();
       ret = decoder.decode(arr, resp, (short) 0, (short) resp.length);
-      //TODO accumlate acc data
       Assert.assertEquals(KMTestUtils.getErrorCode(ret), KMError.OK);
       short partialData = KMArray.cast(ret).get((short) 1);
       Util.arrayCopyNonAtomic(KMByteBlob.cast(partialData).getBuffer(), KMByteBlob.cast(partialData).getStartOff(),
@@ -522,8 +523,12 @@ public class KMRKPFunctionalTest {
       
       moreData = KMInteger.cast(KMArray.cast(ret).get((short) 2)).getByte();
     }while (moreData != 0);
-    System.out.println("Certificate Chain===============>");
-    KMTestUtils.print(udsCerts, (short) 0, offset);
+    short x509Arr = KMArray.exp(KMByteBlob.exp());
+    short additionalCertChain = KMMap.instance((short) 1);
+    KMMap.cast(additionalCertChain).add((short) 0, KMTextString.exp(), x509Arr);
+    ret = decoder.decode(additionalCertChain, udsCerts, (short) 0, offset);
+    ret = KMMap.cast(ret).getKeyValue((short) 0);
+    Assert.assertTrue(KMTestUtils.validateCertChain(ret));
   }
 
 }
