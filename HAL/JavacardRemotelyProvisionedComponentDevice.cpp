@@ -58,7 +58,7 @@ keymaster_error_t translateRkpErrorCode(keymaster_error_t error) {
 }
 
 ScopedAStatus defaultHwInfo(RpcHardwareInfo* info) {
-    info->versionNumber = 2;
+    info->versionNumber = 3;
     info->rpcAuthorName = "Google";
     info->supportedEekCurve = RpcHardwareInfo::CURVE_P256;
     info->uniqueId = "strongbox keymint";

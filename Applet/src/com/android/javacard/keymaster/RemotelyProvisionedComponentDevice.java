@@ -40,7 +40,7 @@ public class RemotelyProvisionedComponentDevice {
   private static final byte TRUE = 0x01;
   private static final byte FALSE = 0x00;
   // RKP Version
-  private static final short RKP_VERSION = (short) 0x02;
+  private static final short RKP_VERSION = (short) 0x03;
   // Boot params
   private static final byte OS_VERSION_ID = 0x00;
   private static final byte SYSTEM_PATCH_LEVEL_ID = 0x01;
