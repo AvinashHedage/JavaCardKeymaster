@@ -286,8 +286,6 @@ public class RemotelyProvisionedComponentDevice {
     short payloadLen = (short) (paylaodArrHeaderLen + deviceInfoLen + challengeHeaderLen
         + challengeLen + keysToSignLen);
 
-    // Calculate payload header len
-    //short payloadBstrHeaderLen = getHeaderLen(payloadLen);
     // Empty aad
     short aad = KMByteBlob.instance(scratchPad, (short) 0, (short) 0);
 
@@ -423,8 +421,7 @@ public class RemotelyProvisionedComponentDevice {
     }
   }
 
-  // This function returns pubKeysToSignMac, deviceInfo and partially constructed protected data
-  // wrapped inside byte blob. The partial protected data contains Headers and encrypted signedMac.
+  // This function returns protected Data, Signature and version
   public void processFinishSendData(APDU apdu) throws Exception {
     try {
       // The prior state should be UPDATE.
@@ -662,41 +659,26 @@ public class RemotelyProvisionedComponentDevice {
     data[dataEntryIndex] = state;
   }
 
-  private KMDeviceUniqueKeyPair createDeviceUniqueKeyPair(boolean testMode, byte[] scratchPad) {
-    KMDeviceUniqueKeyPair deviceUniqueKeyPair;
-    rkpTmpVariables[0] = 0;
-    rkpTmpVariables[1] = 0;
-    if (testMode) {
-      seProvider.createAsymmetricKey(
-          KMType.EC,
-          scratchPad,
-          (short) 0,
-          (short) 128,
-          scratchPad,
-          (short) 128,
-          (short) 128,
-          rkpTmpVariables);
-      deviceUniqueKeyPair =
-          storeDataInst.createRkpTestDeviceUniqueKeyPair(scratchPad, (short) 128,
-              rkpTmpVariables[1],
-              scratchPad, (short) 0, rkpTmpVariables[0]);
-    } else {
-      deviceUniqueKeyPair = storeDataInst.getRkpDeviceUniqueKeyPair(false);
-    }
-    return deviceUniqueKeyPair;
-  }
-
   /**
    * DeviceInfo is a CBOR Map structure described by the following CDDL.
    * <p>
-   * DeviceInfo = { ? "brand" : tstr, ? "manufacturer" : tstr, ? "product" : tstr, ? "model" : tstr,
-   * ? "board" : tstr, ? "vb_state" : "green" / "yellow" / "orange",    // Taken from the AVB values
-   * ? "bootloader_state" : "locked" / "unlocked",    // Taken from the AVB values ?
-   * "vbmeta_digest": bstr,                         // Taken from the AVB values ? "os_version" :
-   * tstr,                    // Same as android.os.Build.VERSION.release ? "system_patch_level" :
-   * uint,                   // YYYYMMDD ? "boot_patch_level" : uint,                     //YYYYMMDD
-   * ? "vendor_patch_level" : uint,                   // YYYYMMDD "security_level" : "tee" /
-   * "strongbox" "att_id_state": "locked" / "open" "cert_type": "widevine" / "keymint" }
+   * DeviceInfo = {
+   * ? "brand" : tstr,
+   * ? "manufacturer" : tstr,
+   * ? "product" : tstr,
+   * ? "model" : tstr,
+   * ? "board" : tstr,
+   * ? "vb_state" : "green" / "yellow" / "orange",    // Taken from the AVB values
+   * ? "bootloader_state" : "locked" / "unlocked",    // Taken from the AVB values
+   * ? "vbmeta_digest": bstr,                         // Taken from the AVB values
+   * ? "os_version" : tstr,                    // Same as android.os.Build.VERSION.release
+   * ? "system_patch_level" : uint,                   // YYYYMMDD
+   * ? "boot_patch_level" : uint,                     //YYYYMMDD
+   * ? "vendor_patch_level" : uint,                   // YYYYMMDD
+   * "security_level" : "tee" / "strongbox"
+   * "att_id_state": "locked" / "open"
+   * "cert_type": "widevine" / "keymint"
+   * }
    */
   private short createDeviceInfo(byte[] scratchpad) {
     // Device Info Key Value pairs.
@@ -866,49 +848,6 @@ public class RemotelyProvisionedComponentDevice {
     }
     return value;
   }
-  //----------------------------------------------------------------------------
-
-  //----------------------------------------------------------------------------
-  // ECDH HKDF
-  private short ecdhHkdfDeriveKey(byte[] privKeyA, short privKeyAOff, short privKeyALen,
-      byte[] pubKeyA,
-      short pubKeyAOff, short pubKeyALen, byte[] pubKeyB, short pubKeyBOff,
-      short pubKeyBLen, byte[] scratchPad) {
-    short key =
-        seProvider.ecdhKeyAgreement(privKeyA, privKeyAOff, privKeyALen, pubKeyB, pubKeyBOff,
-            pubKeyBLen, scratchPad, (short) 0);
-    key = KMByteBlob.instance(scratchPad, (short) 0, key);
-
-    // ignore 0x04 for ephemerical public key as kdfContext should not include 0x04.
-    pubKeyAOff += 1;
-    pubKeyALen -= 1;
-    pubKeyBOff += 1;
-    pubKeyBLen -= 1;
-    short kdfContext =
-        KMCose.constructKdfContext(pubKeyA, pubKeyAOff, pubKeyALen, pubKeyB, pubKeyBOff, pubKeyBLen,
-            true);
-    kdfContext = KMKeymasterApplet
-        .encodeToApduBuffer(kdfContext, scratchPad, (short) 0, KMKeymasterApplet.MAX_COSE_BUF_SIZE);
-    kdfContext = KMByteBlob.instance(scratchPad, (short) 0, kdfContext);
-
-    Util.arrayFillNonAtomic(scratchPad, (short) 0, (short) 32, (byte) 0);
-    seProvider.hkdf(
-        KMByteBlob.cast(key).getBuffer(),
-        KMByteBlob.cast(key).getStartOff(),
-        KMByteBlob.cast(key).length(),
-        scratchPad,
-        (short) 0,
-        (short) 32,
-        KMByteBlob.cast(kdfContext).getBuffer(),
-        KMByteBlob.cast(kdfContext).getStartOff(),
-        KMByteBlob.cast(kdfContext).length(),
-        scratchPad,
-        (short) 32, // offset
-        (short) 32 // Length of expected output.
-    );
-    Util.arrayCopy(scratchPad, (short) 32, scratchPad, (short) 0, (short) 32);
-    return (short) 32;
-  }
 
   //----------------------------------------------------------------------------
   private void initECDSAOperation() {
@@ -1022,8 +961,7 @@ public class RemotelyProvisionedComponentDevice {
     short hmacLen = rkpHmacSign(scratchPad, (short) 0, len, scratchPad, len);
     // Create COSE_MAC0 object
     short coseMac0 =
-        KMCose
-            .constructCoseMac0(protectedHeader, KMCoseHeaders.instance(KMArray.instance((short) 0)),
+        KMCose.constructCoseMac0(protectedHeader, KMCoseHeaders.instance(KMArray.instance((short) 0)),
                 payload,
                 KMByteBlob.instance(scratchPad, len, hmacLen));
     len = KMKeymasterApplet

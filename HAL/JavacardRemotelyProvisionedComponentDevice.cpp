@@ -278,9 +278,9 @@ JavacardRemotelyProvisionedComponentDevice::generateCertificateRequestV2(
     if (!ret.isOk()) return ret;
 
     auto payload = cppbor::Array()
-            .add(deviceInfo.deviceInfo)    // deviceinfo
+            .add(deviceInfo.deviceInfo) // deviceinfo
             .add(challenge)  // Challenge
-            .add(std::move(coseKeys))           // KeysToSign
+            .add(std::move(coseKeys))  // KeysToSign
             .encode();
 
     auto signedData = cppbor::Array()

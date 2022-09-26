@@ -22,10 +22,6 @@ import com.android.javacard.keymaster.KMByteBlob;
 import com.android.javacard.keymaster.KMCose;
 import com.android.javacard.keymaster.KMCoseHeaders;
 import com.android.javacard.keymaster.KMCoseKey;
-import com.android.javacard.keymaster.KMCosePairByteBlobTag;
-import com.android.javacard.keymaster.KMCosePairIntegerTag;
-import com.android.javacard.keymaster.KMCosePairNegIntegerTag;
-import com.android.javacard.keymaster.KMCosePairSimpleValueTag;
 import com.android.javacard.keymaster.KMMap;
 import com.android.javacard.keymaster.KMNInteger;
 import com.android.javacard.keymaster.KMRepository;
@@ -40,15 +36,11 @@ import com.android.javacard.keymaster.KMEncoder;
 import com.android.javacard.keymaster.KMError;
 import com.android.javacard.keymaster.KMInteger;
 import com.android.javacard.keymaster.KMType;
-import com.licel.jcardsim.bouncycastle.util.encoders.Hex;
 import com.licel.jcardsim.smartcardio.CardSimulator;
 import com.licel.jcardsim.utils.AIDUtil;
 
-import java.util.ArrayList;
-import java.util.Vector;
 import javacard.framework.AID;
 import javacard.framework.Util;
-import javacard.security.KeyPair;
 
 import javax.smartcardio.CommandAPDU;
 import javax.smartcardio.ResponseAPDU;
@@ -107,7 +99,6 @@ public class KMRKPFunctionalTest {
   private KMEncoder encoder;
   private KMDecoder decoder;
   private KMSEProvider cryptoProvider;
-  private KMAsn1Parser asn1Parser;
 
   public KMRKPFunctionalTest() {
     cryptoProvider = new KMJCardSimulator();
@@ -139,7 +130,6 @@ public class KMRKPFunctionalTest {
   public void testNegativeInteger() {
     init();
     short ptr = KMArray.instance((short) 3);
-    int a = 0xF0000056;
     byte[] a_b1 = {(byte) 0xF0, 0x00, 0x00, 0x56};
     KMArray.cast(ptr).add((short) 0, KMNInteger.uint_32(a_b1, (short) 0));
     byte[] a_b2 = new byte[]{(byte) 0xF0, 0x00, 0x01, 0x56};
@@ -187,7 +177,6 @@ public class KMRKPFunctionalTest {
     KMArray.cast(arrPtr).add((short) 2, blobExp); // Text string
     KMArray.cast(arrPtr).add((short) 3, KMInteger.exp()); // support Eek Curve.
     KMArray.cast(arrPtr).add((short) 4, blobExp); // unique id
-    byte[] output = new byte[100];
     arrPtr = decoder.decode(arrPtr, resp, (short) 0, (short) resp.length);
     Assert.assertEquals(KMError.OK, KMInteger.cast(KMArray.cast(arrPtr).get((short) 0)).getShort());
     byte[] authorName = new byte[6];
@@ -197,7 +186,7 @@ public class KMRKPFunctionalTest {
     Assert.assertArrayEquals(google, authorName);
     Assert.assertEquals(KMType.RKP_CURVE_P256,
         KMInteger.cast(KMArray.cast(arrPtr).get((short) 3)).getShort());
-    Assert.assertEquals(2, KMInteger.cast(KMArray.cast(arrPtr).get((short) 1)).getShort());
+    Assert.assertEquals(3, KMInteger.cast(KMArray.cast(arrPtr).get((short) 1)).getShort());
     cleanUp();
   }
 
@@ -206,7 +195,7 @@ public class KMRKPFunctionalTest {
     init();
     // Running this test case in test mode.
     byte[] testHmacKey = new byte[32];
-    short ret = generateRkpEcdsaKeyPair(true);
+    short ret = generateRkpEcdsaKeyPair(false);
     // Prepare exp() for coseMac.
     short coseMacArrPtr = KMArray.instance((short) 4);
     short coseHeadersExp = KMCoseHeaders.exp();
@@ -241,21 +230,6 @@ public class KMRKPFunctionalTest {
         bstrProtectedHptr, output, (short) 0, (short) output.length);
     if (len != 32) {
       Assert.fail("Hmac sign len is not 32");
-    }
-    // Compare the tag values.
-    Assert.assertEquals(0,
-        Util.arrayCompare(output, (short) 0, KMByteBlob.cast(bstrTagPtr).getBuffer(),
-            KMByteBlob.cast(bstrTagPtr).getStartOff(), KMByteBlob.cast(bstrTagPtr).length()));
-    cleanUp();
-  }
-
-  @Test
-  public void testGenerateCsrTestMode() {
-    init();
-    short[] noOfKeys = {0, 5, 10};
-    for (int i = 0; i < noOfKeys.length; i++) {
-      testGenerateCsr(noOfKeys[i]);
-      KMRepository.instance().clean();
     }
     cleanUp();
   }
@@ -422,13 +396,7 @@ public class KMRKPFunctionalTest {
     //encode sign structure to paload byte array
 	payloadLen = KMKeymasterApplet.encodeToApduBuffer(signStructure, payload,
 	        (short) 0, KMKeymasterApplet.MAX_COSE_BUF_SIZE);
-    /*
-     * payloadByteLen = payload array header length + 
-     *                  deviceinfo length + 
-     *                  byteheader length of challenge +
-     *                  challenge length +
-     *                  total cosekey bytes length
-     */
+    
     short payloadByteLen = (short)((short)1 /*Array of 3 elements occupies 1 byte */+
     		               deviceInfoBytesLen + 
     		               encoder.getEncodedBytesLength((short)CSR_CHALLENGE.length) +
@@ -496,7 +464,6 @@ public class KMRKPFunctionalTest {
                 encodedSignBuf,
                 (short) 0);
     // Verify the signature of cose sign1.
-    System.out.println("applet rkp input  msg in functionl test");
     KMTestUtils.print(payload, (short) 0, payloadLen);
         Assert.assertTrue(
             cryptoProvider.ecVerify256(pubKey, (short)0, pubLen, payload, (short) 0, payloadLen,
